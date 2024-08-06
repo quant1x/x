@@ -5,13 +5,13 @@ import (
 	"sync"
 )
 
-// 定义一个并发安全的 map
+// SafeMap 定义一个并发安全的 map
 type SafeMap struct {
 	mu sync.Mutex
 	m  map[string]int
 }
 
-// 创建一个新的并发安全的 map
+// NewSafeMap 创建一个新的并发安全的 map
 func NewSafeMap() *SafeMap {
 
 	return &SafeMap{
@@ -28,7 +28,7 @@ func (s *SafeMap) Set(key string, value int) {
 	s.m[key] = value
 }
 
-// 根据键获取值，加锁保护
+// Get 根据键获取值，加锁保护
 func (s *SafeMap) Get(key string) (int, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
