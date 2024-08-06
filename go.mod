@@ -1,6 +1,6 @@
 module github.com/quant1x/x
 
-go 1.21.11
+go 1.21.12
 
 require (
 	github.com/stretchr/testify v1.9.0
