@@ -20,7 +20,7 @@ func NewSafeMap() *SafeMap {
 	}
 }
 
-// 设置键值对，加锁保护
+// Set 设置键值对，加锁保护
 func (s *SafeMap) Set(key string, value int) {
 
 	s.mu.Lock()
