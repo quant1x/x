@@ -17,6 +17,6 @@ void avx2_mm256_float32_add(float *a, float *b, float *c, int64_t n)
     }
     for (int i = 0; i < remain; i++)
     {
-        c[i] = a[i] * b[i];
+        c[i] = a[i] + b[i];
     }
 }
