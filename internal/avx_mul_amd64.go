@@ -1,3 +1,6 @@
 package internal
 
-func _mm256_mul_ps1(a, b Float32x8) (Float32x8)
+import "unsafe"
+
+//go:noescape
+func avx2_mm256_float32_add(a, b, c, n unsafe.Pointer)
