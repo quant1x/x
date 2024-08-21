@@ -1,4 +1,4 @@
-package simd
+package sse2
 
 import (
 	"errors"

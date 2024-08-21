@@ -1,4 +1,4 @@
-package simd
+package sse2
 
 func NegInt8x16(a Int8x16) Int8x16
 func NegInt16x8(a Int16x8) Int16x8

@@ -1,4 +1,4 @@
-package simd
+package sse2
 
 func XorInt8x16(a, b Int8x16) Int8x16
 func XorInt16x8(a, b Int16x8) Int16x8

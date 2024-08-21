@@ -1,4 +1,4 @@
-package simd
+package sse2
 
 // func MinInt8x16(a, b Int8x16) Int8x16
 

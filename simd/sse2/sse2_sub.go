@@ -1,4 +1,4 @@
-package simd
+package sse2
 
 func SubInt8x16(a, b Int8x16) Int8x16
 func SubInt16x8(a, b Int16x8) Int16x8
