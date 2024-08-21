@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.3] - 2024-08-21
+### Changed
+- 修订__m256编写的汇编函数的前缀给b32x8
+
 ## [0.0.2] - 2024-08-21
 ### Changed
 - 新增一个内存逃逸的测试代码
@@ -36,9 +40,11 @@ All notable changes to this project will be documented in this file.
 - delete: chart _examples
 - add: .gitignore
 - update go.mod
+- update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.2...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.3...HEAD
+[0.0.3]: https://gitee.com/quant1x/x-go.git/compare/v0.0.2...v0.0.3
 [0.0.2]: https://gitee.com/quant1x/x-go.git/compare/v0.0.1...v0.0.2
 
 [0.0.1]: https://gitee.com/quant1x/x-go.git/releases/tag/v0.0.1
