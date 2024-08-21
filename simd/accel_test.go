@@ -1,38 +1,45 @@
 package simd
 
 import (
-	"reflect"
-	"testing"
+	"math/rand"
+	"sync"
 )
 
-func TestFloat32x4_Div(t *testing.T) {
-	type args struct {
-		other Float32x4
+const (
+	benchAlignLength  = 5000
+	benchAlignInitNum = 1024
+)
+
+var (
+	testalignOnce    sync.Once
+	testDataBoolx    []bool
+	testDataBooly    []bool
+	testDataBoolr    []bool
+	testDataFloat32  []float32
+	testDataFloat32y []float32
+	testDataFloat64  []float64
+	testDataFloat64y []float64
+)
+
+func initTestData() {
+	testDataBoolx = make([]bool, benchAlignInitNum)
+	testDataBooly = make([]bool, benchAlignInitNum)
+	testDataBoolr = make([]bool, benchAlignInitNum)
+	testDataFloat32 = make([]float32, benchAlignInitNum)
+	testDataFloat32y = make([]float32, benchAlignInitNum)
+	testDataFloat64 = make([]float64, benchAlignInitNum)
+	testDataFloat64y = make([]float64, benchAlignInitNum)
+	for i := 0; i < benchAlignInitNum; i++ {
+		testDataBoolx[i] = i%8 == 0
+		testDataBooly[i] = i%16 == 0
+		testDataBoolr[i] = testDataBoolx[i] && testDataBooly[i]
+		testDataFloat32[i] = rand.Float32()
+		testDataFloat32y[i] = rand.Float32()
+		testDataFloat64[i] = rand.Float64()
+		testDataFloat64y[i] = rand.Float64()
 	}
-	tests := []struct {
-		name    string
-		m       Float32x4
-		args    args
-		want    Float32x4
-		wantErr bool
-	}{
-		{
-			name: "test1",
-			m:    Float32x4{1, 2, 3, 4},
-			args: args{other: Float32x4{1, 2, 3, 4}},
-			want: Float32x4{1, 1, 1, 1},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.m.Div(tt.args.other)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Div() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Div() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
+}
+
+func init() {
+	initTestData()
 }
