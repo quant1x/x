@@ -3,13 +3,13 @@
 package simd
 
 //go:noescape
-func b1x8_and(a []bool, b []bool, result []bool) int
+func b32x8_and(a []bool, b []bool, result []bool) int
 
 //go:noescape
-func b1x8_or(a []bool, b []bool, result []bool) int
+func b32x8_or(a []bool, b []bool, result []bool) int
 
 //go:noescape
-func b1x8_xor(a []bool, b []bool, result []bool) int
+func b32x8_xor(a []bool, b []bool, result []bool) int
 
 //go:noescape
 func b8x32_and(a []bool, b []bool, result []bool) int

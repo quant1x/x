@@ -2,9 +2,9 @@
 
 #include "textflag.h"
 
-// func b1x8_and(a []bool, b []bool, result []bool) int
+// func b32x8_and(a []bool, b []bool, result []bool) int
 // Requires: AVX
-TEXT ·b1x8_and(SB), NOSPLIT, $0-80
+TEXT ·b32x8_and(SB), NOSPLIT, $0-80
 	MOVQ a_base+0(FP), AX
 	MOVQ b_base+24(FP), CX
 	MOVQ result_base+48(FP), DX
@@ -28,9 +28,9 @@ done:
 	VZEROUPPER
 	RET
 
-// func b1x8_or(a []bool, b []bool, result []bool) int
+// func b32x8_or(a []bool, b []bool, result []bool) int
 // Requires: AVX
-TEXT ·b1x8_or(SB), NOSPLIT, $0-80
+TEXT ·b32x8_or(SB), NOSPLIT, $0-80
 	MOVQ a_base+0(FP), AX
 	MOVQ b_base+24(FP), CX
 	MOVQ result_base+48(FP), DX
@@ -54,9 +54,9 @@ done:
 	VZEROUPPER
 	RET
 
-// func b1x8_xor(a []bool, b []bool, result []bool) int
+// func b32x8_xor(a []bool, b []bool, result []bool) int
 // Requires: AVX
-TEXT ·b1x8_xor(SB), NOSPLIT, $0-80
+TEXT ·b32x8_xor(SB), NOSPLIT, $0-80
 	MOVQ a_base+0(FP), AX
 	MOVQ b_base+24(FP), CX
 	MOVQ result_base+48(FP), DX

@@ -7,7 +7,7 @@ import (
 
 const (
 	benchAlignLength  = 5000
-	benchAlignInitNum = 1024
+	benchAlignInitNum = 1000
 )
 
 var (

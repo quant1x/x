@@ -41,7 +41,7 @@ func Test_b1x8_and(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := b1x8_and(tt.args.a, tt.args.b, tt.args.result)
+			got := b32x8_and(tt.args.a, tt.args.b, tt.args.result)
 			if got != tt.want || !assert.Equal(tt.args.want, tt.args.result) {
 				t.Errorf("b1x8_and() = %v, want %v, result = %v, want = %v", got, tt.want, tt.args.result, tt.args.want)
 			}
