@@ -5,7 +5,8 @@ import (
 	"testing"
 )
 
-func Benchmark_bools_bs_and(b *testing.B) {
+// 正式版本
+func Benchmark_bools_and_release(b *testing.B) {
 	x := slices.Clone(testDataBoolx)
 	y := slices.Clone(testDataBooly)
 	//r := make([]bool, len(x))
@@ -15,7 +16,17 @@ func Benchmark_bools_bs_and(b *testing.B) {
 	}
 }
 
-func Benchmark_bools_bs_and_v1(b *testing.B) {
+func Benchmark_bools_and_noasm(b *testing.B) {
+	x := slices.Clone(testDataBoolx)
+	y := slices.Clone(testDataBooly)
+	//r := make([]bool, len(x))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = noasm_b8x32_and(x, y)
+	}
+}
+
+func Benchmark_bools_and_v1(b *testing.B) {
 	x := slices.Clone(testDataBoolx)
 	y := slices.Clone(testDataBooly)
 	b.ResetTimer()
@@ -24,7 +35,7 @@ func Benchmark_bools_bs_and_v1(b *testing.B) {
 	}
 }
 
-func Benchmark_bools_bs_and_v2(b *testing.B) {
+func Benchmark_bools_and_v2(b *testing.B) {
 	x := slices.Clone(testDataBoolx)
 	y := slices.Clone(testDataBooly)
 	b.ResetTimer()
@@ -33,12 +44,12 @@ func Benchmark_bools_bs_and_v2(b *testing.B) {
 	}
 }
 
-func Benchmark_bs_and_noasm(b *testing.B) {
+// for vek
+func Benchmark_bools_and_v3_for_vek(b *testing.B) {
 	x := slices.Clone(testDataBoolx)
 	y := slices.Clone(testDataBooly)
-	//r := make([]bool, len(x))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = noasm_b8x32_and(x, y)
+		v3_bs_and(x, y)
 	}
 }

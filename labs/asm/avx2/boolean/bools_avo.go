@@ -26,7 +26,7 @@ func bool_binary_template(prefix, operator string) {
 	Y1 := YMM()
 
 	Label("loop")
-	CMPQ(n, U32(8))
+	CMPQ(n, U32(32))
 	JL(LabelRef("done"))
 
 	VMOVUPS(a.Offset(0), Y0)
@@ -54,7 +54,7 @@ func bool_binary_template(prefix, operator string) {
 	ADDQ(U32(32), a.Base)
 	ADDQ(U32(32), b.Base)
 	ADDQ(U32(32), c.Base)
-	SUBQ(U32(8), n)
+	SUBQ(U32(32), n)
 	JMP(LabelRef("loop"))
 
 	Label("done")
@@ -100,9 +100,9 @@ func bool_i8x32_binary_template(prefix, operator string) {
 		//VANDPS(Y1, Y0, Y0)
 		VPAND(Y1, Y0, Y0)
 	case avx2.Op_or:
-		VORPS(Y1, Y0, Y0)
+		VPOR(Y1, Y0, Y0)
 	case avx2.Op_xor:
-		VXORPS(Y1, Y0, Y0)
+		VPXOR(Y1, Y0, Y0)
 	default:
 		panic("not implemented: " + operator)
 	}

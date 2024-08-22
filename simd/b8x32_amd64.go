@@ -13,3 +13,9 @@ func b32x8_xor(a []bool, b []bool, result []bool) int
 
 //go:noescape
 func b8x32_and(a []bool, b []bool, result []bool) int
+
+//go:noescape
+func b8x32_or(a []bool, b []bool, result []bool) int
+
+//go:noescape
+func b8x32_xor(a []bool, b []bool, result []bool) int

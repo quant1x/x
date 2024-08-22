@@ -11,7 +11,7 @@ TEXT ·b32x8_and(SB), NOSPLIT, $0-80
 	MOVQ a_len+8(FP), BX
 
 loop:
-	CMPQ    BX, $0x00000008
+	CMPQ    BX, $0x00000020
 	JL      done
 	VMOVUPS (AX), Y0
 	VMOVUPS (CX), Y1
@@ -20,7 +20,7 @@ loop:
 	ADDQ    $0x00000020, AX
 	ADDQ    $0x00000020, CX
 	ADDQ    $0x00000020, DX
-	SUBQ    $0x00000008, BX
+	SUBQ    $0x00000020, BX
 	JMP     loop
 
 done:
@@ -37,7 +37,7 @@ TEXT ·b32x8_or(SB), NOSPLIT, $0-80
 	MOVQ a_len+8(FP), BX
 
 loop:
-	CMPQ    BX, $0x00000008
+	CMPQ    BX, $0x00000020
 	JL      done
 	VMOVUPS (AX), Y0
 	VMOVUPS (CX), Y1
@@ -46,7 +46,7 @@ loop:
 	ADDQ    $0x00000020, AX
 	ADDQ    $0x00000020, CX
 	ADDQ    $0x00000020, DX
-	SUBQ    $0x00000008, BX
+	SUBQ    $0x00000020, BX
 	JMP     loop
 
 done:
@@ -63,7 +63,7 @@ TEXT ·b32x8_xor(SB), NOSPLIT, $0-80
 	MOVQ a_len+8(FP), BX
 
 loop:
-	CMPQ    BX, $0x00000008
+	CMPQ    BX, $0x00000020
 	JL      done
 	VMOVUPS (AX), Y0
 	VMOVUPS (CX), Y1
@@ -72,7 +72,7 @@ loop:
 	ADDQ    $0x00000020, AX
 	ADDQ    $0x00000020, CX
 	ADDQ    $0x00000020, DX
-	SUBQ    $0x00000008, BX
+	SUBQ    $0x00000020, BX
 	JMP     loop
 
 done:
@@ -94,6 +94,58 @@ loop:
 	VMOVDQU (AX), Y0
 	VMOVDQU (CX), Y1
 	VPAND   Y1, Y0, Y0
+	VMOVDQU Y0, (DX)
+	ADDQ    $0x00000020, AX
+	ADDQ    $0x00000020, CX
+	ADDQ    $0x00000020, DX
+	SUBQ    $0x00000020, BX
+	JMP     loop
+
+done:
+	MOVQ BX, ret+72(FP)
+	VZEROUPPER
+	RET
+
+// func b8x32_or(a []bool, b []bool, result []bool) int
+// Requires: AVX, AVX2
+TEXT ·b8x32_or(SB), NOSPLIT, $0-80
+	MOVQ a_base+0(FP), AX
+	MOVQ b_base+24(FP), CX
+	MOVQ result_base+48(FP), DX
+	MOVQ a_len+8(FP), BX
+
+loop:
+	CMPQ    BX, $0x00000020
+	JL      done
+	VMOVDQU (AX), Y0
+	VMOVDQU (CX), Y1
+	VPOR    Y1, Y0, Y0
+	VMOVDQU Y0, (DX)
+	ADDQ    $0x00000020, AX
+	ADDQ    $0x00000020, CX
+	ADDQ    $0x00000020, DX
+	SUBQ    $0x00000020, BX
+	JMP     loop
+
+done:
+	MOVQ BX, ret+72(FP)
+	VZEROUPPER
+	RET
+
+// func b8x32_xor(a []bool, b []bool, result []bool) int
+// Requires: AVX, AVX2
+TEXT ·b8x32_xor(SB), NOSPLIT, $0-80
+	MOVQ a_base+0(FP), AX
+	MOVQ b_base+24(FP), CX
+	MOVQ result_base+48(FP), DX
+	MOVQ a_len+8(FP), BX
+
+loop:
+	CMPQ    BX, $0x00000020
+	JL      done
+	VMOVDQU (AX), Y0
+	VMOVDQU (CX), Y1
+	VPXOR   Y1, Y0, Y0
 	VMOVDQU Y0, (DX)
 	ADDQ    $0x00000020, AX
 	ADDQ    $0x00000020, CX

@@ -1,0 +1,72 @@
+#include "textflag.h"
+
+// func vek_And_AVX2(x []bool, y []bool)
+// Requires: AVX
+TEXT ·vek_And_AVX2(SB), NOSPLIT, $0-48
+	MOVQ  x_base+0(FP), DI
+	MOVQ  y_base+24(FP), SI
+	MOVQ  x_len+8(FP), DX
+	TESTQ DX, DX
+	JE    LBB1_13
+	CMPQ  DX, $0x10
+	JAE   LBB1_3
+	XORL  AX, AX
+	JMP   LBB1_12
+
+LBB1_3:
+	CMPQ DX, $0x80
+	JAE  LBB1_5
+	XORL AX, AX
+	JMP  LBB1_9
+
+LBB1_5:
+	MOVQ DX, AX
+	ANDQ $-128, AX
+	XORL CX, CX
+
+LBB1_6:
+	VMOVUPS (SI)(CX*1), Y0
+	VMOVUPS 32(SI)(CX*1), Y1
+	VMOVUPS 64(SI)(CX*1), Y2
+	VMOVUPS 96(SI)(CX*1), Y3
+	VANDPS  (DI)(CX*1), Y0, Y0
+	VANDPS  32(DI)(CX*1), Y1, Y1
+	VANDPS  64(DI)(CX*1), Y2, Y2
+	VANDPS  96(DI)(CX*1), Y3, Y3
+	VMOVUPS Y0, (DI)(CX*1)
+	VMOVUPS Y1, 32(DI)(CX*1)
+	VMOVUPS Y2, 64(DI)(CX*1)
+	VMOVUPS Y3, 96(DI)(CX*1)
+	SUBQ    $-128, CX
+	CMPQ    AX, CX
+	JNE     LBB1_6
+	CMPQ    AX, DX
+	JE      LBB1_13
+	TESTB   $0x70, DL
+	JE      LBB1_12
+
+LBB1_9:
+	MOVQ AX, CX
+	MOVQ DX, AX
+	ANDQ $-16, AX
+
+LBB1_10:
+	VMOVUPS (SI)(CX*1), X0
+	VANDPS  (DI)(CX*1), X0, X0
+	VMOVUPS X0, (DI)(CX*1)
+	ADDQ    $0x10, CX
+	CMPQ    AX, CX
+	JNE     LBB1_10
+	CMPQ    AX, DX
+	JE      LBB1_13
+
+LBB1_12:
+	MOVBLZX (SI)(AX*1), CX
+	ANDB    CL, (DI)(AX*1)
+	ADDQ    $0x01, AX
+	CMPQ    DX, AX
+	JNE     LBB1_12
+
+LBB1_13:
+	VZEROUPPER
+	RET

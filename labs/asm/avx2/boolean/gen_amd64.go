@@ -10,5 +10,7 @@ func main() {
 	bool_binary_template(avx2.Func_prefix_boo32x8, avx2.Op_or)
 	bool_binary_template(avx2.Func_prefix_boo32x8, avx2.Op_xor)
 	bool_i8x32_binary_template(avx2.Func_prefix_boolx32, avx2.Op_and)
+	bool_i8x32_binary_template(avx2.Func_prefix_boolx32, avx2.Op_or)
+	bool_i8x32_binary_template(avx2.Func_prefix_boolx32, avx2.Op_xor)
 	build.Generate()
 }
