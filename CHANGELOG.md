@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.5] - 2024-08-24
+### Changed
+- 新增测试性c代码
+- 新增bool util函数集
+- 新增地址、指针运算和转换的实验性功能函数
+- 调整部分创建切片的代码, 不指定最大长度
+
 ## [0.0.4] - 2024-08-22
 ### Changed
 - 修订布尔类型切片的avx2版本的汇编指令
@@ -10,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ## [0.0.3] - 2024-08-21
 ### Changed
 - 修订__m256编写的汇编函数的前缀给b32x8
+- update changelog
 
 ## [0.0.2] - 2024-08-21
 ### Changed
@@ -48,7 +56,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.4...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.5...HEAD
+[0.0.5]: https://gitee.com/quant1x/x-go.git/compare/v0.0.4...v0.0.5
 [0.0.4]: https://gitee.com/quant1x/x-go.git/compare/v0.0.3...v0.0.4
 [0.0.3]: https://gitee.com/quant1x/x-go.git/compare/v0.0.2...v0.0.3
 [0.0.2]: https://gitee.com/quant1x/x-go.git/compare/v0.0.1...v0.0.2
