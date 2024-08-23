@@ -28,16 +28,16 @@ func Test_b1x8_and(t *testing.T) {
 			},
 			want: 7,
 		},
-		//{
-		//	name: "test_count_8",
-		//	args: args{
-		//		a:      []bool{false, true, true, true, true, true, true, true},
-		//		b:      []bool{true, true, true, true, true, true, false, true},
-		//		result: make([]bool, 8),
-		//		want:   []bool{false, true, true, true, true, true, false, true},
-		//	},
-		//	want: 0,
-		//},
+		{
+			name: "test_count_8",
+			args: args{
+				a:      []bool{false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true},
+				b:      []bool{true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true},
+				result: make([]bool, 32),
+				want:   []bool{false, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true},
+			},
+			want: 0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
