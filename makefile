@@ -2,12 +2,10 @@ mod=github.com/quant1x/x
 arch=amd64
 pkg=simd
 asm_path=labs/asm
-output_path=$(CURDIR)/simd
-
-
+mkfile_path=$(CURDIR)
+output_path=$(mkfile_path)/simd
 
 all: hello f32x8 b1x8
-
 
 hello:
 	@echo $(CURDIR)
