@@ -3,6 +3,29 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.6] - 2024-08-26
+### Changed
+- 分解输出路径, 预备相对路径的处理方式
+- makefile增加清理.o文件
+- makefile增加清理.o文件
+- makefile 新增float32.c
+- 去掉无用的参数n
+- 调整参数offset类型位int_t
+- 调整参数offset类型为int64_t,int offset goat编译失败, 不能识别int
+- 删除废弃的中间汇编文件
+- 调整测试代码
+- 修复n的指针
+- 调整n的观测代码
+- 调整n的观测代码
+- 更新add plan9汇编代码
+- 调整测试代码
+- 优化浮点随机数的生成
+- 调整加速接口
+- 调整方法名称
+- 新增f32x8 add函数内不申请内存的
+- 调整float32基准测试函数名前缀
+- 调整实验性load1单元测试代码
+
 ## [0.0.5] - 2024-08-24
 ### Changed
 - 新增测试性c代码
@@ -13,6 +36,7 @@ All notable changes to this project will be documented in this file.
 ## [0.0.4] - 2024-08-22
 ### Changed
 - 修订布尔类型切片的avx2版本的汇编指令
+- update changelog
 
 ## [0.0.3] - 2024-08-21
 ### Changed
@@ -56,7 +80,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.5...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.6...HEAD
+[0.0.6]: https://gitee.com/quant1x/x-go.git/compare/v0.0.5...v0.0.6
 [0.0.5]: https://gitee.com/quant1x/x-go.git/compare/v0.0.4...v0.0.5
 [0.0.4]: https://gitee.com/quant1x/x-go.git/compare/v0.0.3...v0.0.4
 [0.0.3]: https://gitee.com/quant1x/x-go.git/compare/v0.0.2...v0.0.3
