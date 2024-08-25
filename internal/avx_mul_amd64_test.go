@@ -3,20 +3,22 @@ package internal
 import (
 	"fmt"
 	"testing"
+	"unsafe"
 )
 
-func Test__mm256_mul_ps1(t *testing.T) {
+func Test_avx2_mm256_float32_add(t *testing.T) {
 	a := Float32x8{3, 3, 3, 3, 3, 3, 3, 3}
 	b := Float32x8{2, 2, 2, 2, 2, 2, 2, 2}
 	n := len(a)
+	c := make([]Float32x8, n)
 	fmt.Println(n)
 	fmt.Printf("a: %p\n", &a)
 	fmt.Printf("b: %p\n", &b)
 	fmt.Printf("n: %p\n", &n)
-	//ptrA := unsafe.Pointer(&a[0])
-	//ptrB := unsafe.Pointer(&b[0])
-	//ptrC := unsafe.Pointer(&c[0])
-	c := _mm256_mul_ps1(a, b)
+	ptrA := unsafe.Pointer(&a[0])
+	ptrB := unsafe.Pointer(&b[0])
+	ptrC := unsafe.Pointer(&c[0])
+	_avx2_mm256_float32_add(ptrA, ptrB, ptrC, unsafe.Pointer(&n))
 	fmt.Println(c)
 }
 
