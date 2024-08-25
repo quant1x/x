@@ -9,7 +9,7 @@ void* address_seek(void *addr, int offset)
 }
 
 
-void f32x4_add(float const *a, float const *b, float *c, int n)
+void f32x4_add(float const *a, float const *b, float *c)
 {
     __m128 vec1 = _mm_load_ps(a);
     __m128 vec2 = _mm_load_ps(b);
@@ -17,7 +17,7 @@ void f32x4_add(float const *a, float const *b, float *c, int n)
     _mm_storeu_ps(c, res);
 }
 
-void f32x8_add(float const *a, float const *b, float *c, int n)
+void f32x8_add(float const *a, float const *b, float *c)
 {
     __m256 vec1 = _mm256_load_ps(a);
     __m256 vec2 = _mm256_load_ps(b);
