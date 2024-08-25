@@ -14,11 +14,11 @@ func Test_avx2_mm256_float32_add(t *testing.T) {
 	fmt.Println(n)
 	fmt.Printf("a: %p\n", &a)
 	fmt.Printf("b: %p\n", &b)
-	fmt.Printf("n: %p\n", &n)
+	fmt.Printf("n: %p, %x\n", &n, unsafe.Pointer(uintptr(n)))
 	ptrA := unsafe.Pointer(&a[0])
 	ptrB := unsafe.Pointer(&b[0])
 	ptrC := unsafe.Pointer(&c[0])
-	_avx2_mm256_float32_add(ptrA, ptrB, ptrC, unsafe.Pointer(uintptr(n)))
+	_avx2_mm256_float32_add(ptrA, ptrB, ptrC, unsafe.Pointer(&n))
 	fmt.Println(c)
 }
 
