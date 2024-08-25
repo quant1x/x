@@ -40,5 +40,7 @@ $(OBJS_PLAN9):$(OBJS_ASM)
 .PHONY : clean
 clean:
 	-rm *.s
+	-rm *.o
 	-rm src/*.s
+	-rm src/*.o
 	-rm src/*.asm
