@@ -1,10 +1,10 @@
-SRC_AVX2 = src/avx_mul.c
+SRC_AVX2 = src/avx_mul.c src/float32.c
 OBJS_AVX2 = $(SRC_AVX2:.c=.asm)
 SRC_AVX512 = src/floats_avx512.c
 OBJS_AVX512 = $(SRC_AVX512:.c=.asm)
 
 #SOURCES = src/floats_avx.c src/floats_avx512.c
-SOURCES = src/avx_mul.c
+SOURCES = src/avx_mul.c src/float32.c
 OBJS_ASM = $(SOURCES:.c=.asm)
 OBJS_ASM1 = $(notdir $(OBJS_ASM))
 OBJS_PLAN9 = $(OBJS_ASM1:.asm=_amd64.s)
