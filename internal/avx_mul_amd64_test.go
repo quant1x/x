@@ -7,14 +7,14 @@ import (
 )
 
 func Test_avx2_mm256_float32_add(t *testing.T) {
-	a := Float32x8{3, 3, 3, 3, 3, 3, 3, 3}
-	b := Float32x8{2, 2, 2, 2, 2, 2, 2, 2}
+	a := []float32{3, 3, 3, 3, 3, 3, 3, 3}
+	b := []float32{2, 2, 2, 2, 2, 2, 2, 2}
 	n := len(a)
-	c := make([]Float32x8, n)
+	c := make([]float32, n)
 	fmt.Println(n)
 	fmt.Printf("a: %p\n", &a)
 	fmt.Printf("b: %p\n", &b)
-	fmt.Printf("n: %p, %x\n", &n, unsafe.Pointer(uintptr(n)))
+	fmt.Printf("n: %p, %p\n", &n, unsafe.Pointer(uintptr(n)))
 	ptrA := unsafe.Pointer(&a[0])
 	ptrB := unsafe.Pointer(&b[0])
 	ptrC := unsafe.Pointer(&c[0])
