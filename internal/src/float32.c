@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 
-void* address_seek(void *addr, int_t offset)
+void* address_seek(void *addr, int64_t offset)
 {
     return addr + offset;
 }
