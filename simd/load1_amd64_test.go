@@ -19,7 +19,7 @@ func Test_load(t *testing.T) {
 	var s = test_gen_int8s()
 	fmt.Printf("s address: %p\n", &s)
 	var p SimdPtr[int8]
-	p.load(s)
+	p.from(s)
 	fmt.Printf("p address: %p\n", p.pointer())
 	for i := 0; i < len(s); i++ {
 		fmt.Printf("s address[%d]: %p\n", i, &s[i])
