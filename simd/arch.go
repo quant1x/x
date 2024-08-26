@@ -32,6 +32,12 @@ type accelerator[E number] interface {
 	div(x, y []E) []E
 	// 取模
 	mod(x, y []E) []E
+	// 与
+	and(x, y []E) []E
+	// 或
+	or(x, y []E) []E
+	// 异或
+	xor(x, y []E) []E
 }
 
 type f32s []float32
