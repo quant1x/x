@@ -6,8 +6,22 @@ import (
 	"testing"
 )
 
-func Benchmark_add_none(b *testing.B) {
-	x := slices.Clone(testDataFloat32)
+func Test_float32x8_check(t *testing.T) {
+	x := slices.Clone(testDataFloat32x)
+	y := slices.Clone(testDataFloat32y)
+	length := len(x)
+	r := make([]float32, length)
+	n := f32x8_add(x, y, r)
+	for i := length - n; i < length; i++ {
+		r[i] = x[i] + y[i]
+	}
+	if !assert.Equal(r, testDataFloat32r) {
+		t.Errorf("f32x8_add() = %v, want %v", r, testDataFloat32r)
+	}
+}
+
+func Benchmark_float32x8_add_none_with_make(b *testing.B) {
+	x := slices.Clone(testDataFloat32x)
 	y := slices.Clone(testDataFloat32y)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -15,8 +29,18 @@ func Benchmark_add_none(b *testing.B) {
 	}
 }
 
-func Benchmark_add_v1(b *testing.B) {
-	x := slices.Clone(testDataFloat32)
+func Benchmark_float32x8_add_none_without_make(b *testing.B) {
+	x := slices.Clone(testDataFloat32x)
+	y := slices.Clone(testDataFloat32y)
+	r := make([]float32, len(x))
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = noasm_f32x8_add_v1(x, y, r)
+	}
+}
+
+func Benchmark_float32x8_add_v1(b *testing.B) {
+	x := slices.Clone(testDataFloat32x)
 	y := slices.Clone(testDataFloat32y)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -24,8 +48,8 @@ func Benchmark_add_v1(b *testing.B) {
 	}
 }
 
-func Benchmark_add_v2(b *testing.B) {
-	x := slices.Clone(testDataFloat32)
+func Benchmark_float32x8_add_v2(b *testing.B) {
+	x := slices.Clone(testDataFloat32x)
 	y := slices.Clone(testDataFloat32y)
 	r := make([]float32, len(x))
 	b.ResetTimer()
@@ -34,8 +58,8 @@ func Benchmark_add_v2(b *testing.B) {
 	}
 }
 
-func Benchmark_add_v3(b *testing.B) {
-	x := slices.Clone(testDataFloat32)
+func Benchmark_float32x8_add_v3(b *testing.B) {
+	x := slices.Clone(testDataFloat32x)
 	y := slices.Clone(testDataFloat32y)
 	//// 开始创建公共arena内存池
 	//mem := arena.NewArena()
@@ -48,8 +72,8 @@ func Benchmark_add_v3(b *testing.B) {
 	}
 }
 
-func Benchmark_add_vek32(b *testing.B) {
-	x := slices.Clone(testDataFloat32)
+func Benchmark_float32x8_add_vek32(b *testing.B) {
+	x := slices.Clone(testDataFloat32x)
 	y := slices.Clone(testDataFloat32y)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
