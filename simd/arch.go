@@ -17,7 +17,7 @@ type float interface {
 
 // 数字类型
 type number interface {
-	integer | float
+	boolean | integer | float
 }
 
 // 加速器接口
