@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.7] - 2025-03-11
+### Changed
+- 封装一层字节切片和字符串互转
+- 调整测试代码
+- 调整切片类型转换的测试代码
+- 调整number泛型, 新增bool类型
+- 新增切片强制转换函数
+- 调整部分测试代码
+- 调整go版本最低支持1.24.0
+- 增加一个简易的评分系统
+
 ## [0.0.6] - 2024-08-26
 ### Changed
 - 分解输出路径, 预备相对路径的处理方式
@@ -32,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - 新增bool util函数集
 - 新增地址、指针运算和转换的实验性功能函数
 - 调整部分创建切片的代码, 不指定最大长度
+- update changelog
 
 ## [0.0.4] - 2024-08-22
 ### Changed
@@ -80,7 +92,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.6...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.7...HEAD
+[0.0.7]: https://gitee.com/quant1x/x-go.git/compare/v0.0.6...v0.0.7
 [0.0.6]: https://gitee.com/quant1x/x-go.git/compare/v0.0.5...v0.0.6
 [0.0.5]: https://gitee.com/quant1x/x-go.git/compare/v0.0.4...v0.0.5
 [0.0.4]: https://gitee.com/quant1x/x-go.git/compare/v0.0.3...v0.0.4
