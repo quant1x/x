@@ -18,3 +18,4 @@ bin/
 *.csv
 *.xlsx
 ~*.xlsx
+*.dat
