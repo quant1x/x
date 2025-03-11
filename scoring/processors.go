@@ -1,4 +1,3 @@
-// scoring/processors.go
 package scoring
 
 import "fmt"
