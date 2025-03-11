@@ -3,9 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.10] - 2025-03-11
+### Changed
+- 新增16进制字符串和字节数据互转的单元测试
+
 ## [0.0.9] - 2025-03-11
 ### Changed
 - 新增一个sync.pool的封装
+- update changelog
 
 ## [0.0.8] - 2025-03-11
 ### Changed
@@ -103,7 +108,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.9...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.10...HEAD
+[0.0.10]: https://gitee.com/quant1x/x-go.git/compare/v0.0.9...v0.0.10
 [0.0.9]: https://gitee.com/quant1x/x-go.git/compare/v0.0.8...v0.0.9
 [0.0.8]: https://gitee.com/quant1x/x-go.git/compare/v0.0.7...v0.0.8
 [0.0.7]: https://gitee.com/quant1x/x-go.git/compare/v0.0.6...v0.0.7
