@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.8] - 2025-03-11
+### Changed
+- 删除部分废弃的源文件头部的注释
+- 删除部分废弃的源文件头部的注释
+
 ## [0.0.7] - 2025-03-11
 ### Changed
 - 封装一层字节切片和字符串互转
@@ -13,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - 调整部分测试代码
 - 调整go版本最低支持1.24.0
 - 增加一个简易的评分系统
+- update changelog
 
 ## [0.0.6] - 2024-08-26
 ### Changed
@@ -92,7 +98,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.7...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.8...HEAD
+[0.0.8]: https://gitee.com/quant1x/x-go.git/compare/v0.0.7...v0.0.8
 [0.0.7]: https://gitee.com/quant1x/x-go.git/compare/v0.0.6...v0.0.7
 [0.0.6]: https://gitee.com/quant1x/x-go.git/compare/v0.0.5...v0.0.6
 [0.0.5]: https://gitee.com/quant1x/x-go.git/compare/v0.0.4...v0.0.5
