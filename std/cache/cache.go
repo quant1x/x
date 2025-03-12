@@ -1,4 +1,3 @@
-// cache.go
 package cache
 
 import (
@@ -310,6 +309,7 @@ func (c *Cache[E]) ToSlice() ([]E, error) {
 	usedElements = int(c.userSize) / int(eSize)
 	c.header.arrayCap = uint32(usedElements)
 	c.header.elementSize = uint32(eSize)
-	ptr := unsafe.Pointer(dataStart)
+	addr := &c.data.Bytes()[headerSize]
+	ptr := unsafe.Pointer(addr)
 	return unsafe.Slice((*E)(ptr), usedElements), nil
 }
