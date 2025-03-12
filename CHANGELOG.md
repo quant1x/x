@@ -3,9 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.12] - 2025-03-12
+### Changed
+- 新增内存方向的内存页尺寸和类型尺寸的小功能函数
+- mmap方式的cache改成泛型
+
 ## [0.0.11] - 2025-03-11
 ### Changed
 - 新增跨平台的mmap功能
+- update changelog
 
 ## [0.0.10] - 2025-03-11
 ### Changed
@@ -113,7 +119,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.11...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.12...HEAD
+[0.0.12]: https://gitee.com/quant1x/x-go.git/compare/v0.0.11...v0.0.12
 [0.0.11]: https://gitee.com/quant1x/x-go.git/compare/v0.0.10...v0.0.11
 [0.0.10]: https://gitee.com/quant1x/x-go.git/compare/v0.0.9...v0.0.10
 [0.0.9]: https://gitee.com/quant1x/x-go.git/compare/v0.0.8...v0.0.9
