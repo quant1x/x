@@ -3,10 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.15] - 2025-03-13
+### Changed
+- 修复部分存在警告信息的代码
+
 ## [0.0.14] - 2025-03-13
 ### Changed
 - 获取类型尺寸的另一个实现
 - 补充函数注释
+- update changelog
 
 ## [0.0.13] - 2025-03-13
 ### Changed
@@ -132,7 +137,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.14...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.15...HEAD
+[0.0.15]: https://gitee.com/quant1x/x-go.git/compare/v0.0.14...v0.0.15
 [0.0.14]: https://gitee.com/quant1x/x-go.git/compare/v0.0.13...v0.0.14
 [0.0.13]: https://gitee.com/quant1x/x-go.git/compare/v0.0.12...v0.0.13
 [0.0.12]: https://gitee.com/quant1x/x-go.git/compare/v0.0.11...v0.0.12
