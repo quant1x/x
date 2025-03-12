@@ -21,15 +21,18 @@ func TestCacheToSlice(t *testing.T) {
 	// 创建缓存（100万个数据点）
 	const count = 1_000_000
 	dataSize := int64(unsafe.Sizeof(FinancialData{})) * count
-
-	c, err := OpenCache("market.dat", dataSize)
+	_ = dataSize
+	c, err := OpenCache[FinancialData]("market.dat")
 	if err != nil {
 		panic(err)
 	}
 	defer c.Close()
-
+	err = c.Add(count)
+	if err != nil {
+		panic(err)
+	}
 	// 获取类型视图
-	view, err := ToSlice[FinancialData](c)
+	view, err := c.ToSlice()
 	if err != nil {
 		panic(err)
 	}
@@ -46,11 +49,9 @@ func TestCacheToSlice(t *testing.T) {
 	}
 	// 更新数据长度
 	_ = c.WriteData(0, unsafe.Slice((*byte)(unsafe.Pointer(&view[0])), len(view)*int(unsafe.Sizeof(FinancialData{}))))
-	err = c.Add(len(view))
-	if err != nil {
-		panic(err)
-	}
 	// 验证数据
-	fmt.Printf("存储%d条行情数据\n", len(view))
-	fmt.Printf("最新收盘价: %.2f\n", view[len(view)-1].Close)
+	n := len(view)
+	fmt.Printf("存储%d条行情数据\n", n)
+	dd := view[n-1].Close
+	fmt.Printf("最新收盘价: %.2f\n", dd)
 }
