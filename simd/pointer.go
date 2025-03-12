@@ -50,9 +50,10 @@ func (p *Pointer[E]) from(s []E) {
 }
 
 func (p *Pointer[E]) seek(n int) unsafe.Pointer {
-	ptr := p.firstAddress()
-	ptr += uintptr(n)
-	return unsafe.Pointer(ptr)
+	//ptr := p.firstAddress()
+	//ptr += uintptr(n)
+	ptr := p.pointer()
+	return unsafe.Pointer(uintptr(ptr) + uintptr(n))
 }
 
 func (p *Pointer[E]) asInt8s() []int8 {
