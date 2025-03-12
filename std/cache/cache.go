@@ -16,8 +16,8 @@ const (
 )
 
 const (
-	DEFAULT_SIZE = 1 << 20 // 1MB
-	THRESHOLD    = 0.8     // 80%使用率触发扩容
+	DefaultSize = 1 << 20 // 1MB
+	THRESHOLD   = 0.8     // 80%使用率触发扩容
 )
 
 const (
@@ -93,13 +93,13 @@ func OpenCache[E any](name string) (*Cache[E], error) {
 		totalSize = headerSize
 	}
 	if err := f.Truncate(totalSize); err != nil {
-		f.Close()
+		_ = f.Close()
 		return nil, fmt.Errorf("truncate failed: %w", err)
 	}
 	userSize := totalSize - headerSize
 	data, err := mmap(int(totalSize), f)
 	if err != nil {
-		f.Close()
+		_ = f.Close()
 		return nil, fmt.Errorf("mmap failed: %w", err)
 	}
 
@@ -112,7 +112,7 @@ func OpenCache[E any](name string) (*Cache[E], error) {
 	}
 
 	if err := c.initHeader(); err != nil {
-		c.Close()
+		_ = c.Close()
 		return nil, err
 	}
 
@@ -243,6 +243,10 @@ func (c *Cache[E]) expand(required uint32) error {
 	// 0. 备份header
 	var oldHeader cacheHeader
 	oldHeader = *(c.header)
+	// 同步磁盘
+	if err := c.data.Flush(); err != nil {
+		return err
+	}
 	//oldHeader := cacheHeader{
 	//	headerSize:  c.header.headerSize,
 	//	magic:       c.header.magic,
@@ -266,18 +270,11 @@ func (c *Cache[E]) expand(required uint32) error {
 	// 3. 重新映射
 	data, err := mmap(int(newCapacity), c.f)
 	if err != nil {
-		c.f.Close()
+		_ = c.f.Close()
 		return fmt.Errorf("mmap failed: %w", err)
 	}
 
 	// 4. 更新元数据
-	//c := &Cache{
-	//	filename: name,
-	//	f:        f,
-	//	userSize: userSize,
-	//	data:     data,
-	//	header:   (*cacheHeader)(unsafe.Pointer(&data.Bytes()[0])),
-	//}
 	c.userSize = int64(newUserSize)
 	c.data = data
 	c.header = (*cacheHeader)(unsafe.Pointer(&data.Bytes()[0]))
@@ -285,7 +282,7 @@ func (c *Cache[E]) expand(required uint32) error {
 	c.header.arrayCap = newArrayCap
 
 	if err := c.initHeader(); err != nil {
-		c.Close()
+		_ = c.Close()
 		return err
 	}
 
@@ -308,7 +305,7 @@ func (c *Cache[E]) ToSlice() ([]E, error) {
 	usedElements := int(c.header.dataSize) / int(eSize)
 	usedElements = int(c.userSize) / int(eSize)
 	c.header.arrayCap = uint32(usedElements)
-	c.header.elementSize = uint32(eSize)
+	c.header.elementSize = eSize
 	addr := &c.data.Bytes()[headerSize]
 	ptr := unsafe.Pointer(addr)
 	return unsafe.Slice((*E)(ptr), usedElements), nil

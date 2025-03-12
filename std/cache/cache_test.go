@@ -6,6 +6,13 @@ import (
 	"unsafe"
 )
 
+func TestCache_000(t *testing.T) {
+	_ = DefaultSize
+	_ = THRESHOLD
+	_ = maxFileSize
+	_ = ErrInvalidAccess
+}
+
 type FinancialData struct {
 	Timestamp int64
 	Open      float64
