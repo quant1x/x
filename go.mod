@@ -6,6 +6,7 @@ require (
 	github.com/kardianos/service v1.2.2
 	github.com/mmcloughlin/avo v0.6.0
 	github.com/panjf2000/gnet/v2 v2.7.2
+	github.com/petermattis/goid v0.0.0-20250303134427-723919f7f203
 	golang.org/x/sys v0.31.0
 )
 
