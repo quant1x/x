@@ -59,7 +59,8 @@ func (rb *RingBuffer[T]) Write(value T) error {
 		minCons = atomic.LoadUint32(&rb.consumerPos)
 
 		if currentProd-minCons >= rb.size {
-			return ErrQueueFull
+			runtime.Gosched() // 让出时间片
+			continue
 		}
 
 		index := currentProd & rb.mask
@@ -96,15 +97,19 @@ func (rb *RingBuffer[T]) Write(value T) error {
 func (rb *RingBuffer[T]) Read() (T, error) {
 	var zero T
 
+	const maxRetries = 10000 // 增加最大重试次数
+
 	for {
 		currentCons := atomic.LoadUint32(&rb.consumerPos)
 		currentProd := atomic.LoadUint32(&rb.producerPos)
 
+		// 检查队列是否关闭且没有更多数据
 		if atomic.LoadUint32(&rb.closed) == 1 && currentCons >= currentProd {
 			return zero, errors.New("queue closed")
 		}
 
 		if currentCons >= currentProd {
+			// 队列为空时让出 CPU 时间片
 			runtime.Gosched()
 			continue
 		}
@@ -119,14 +124,22 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 		}
 
 		// CAS更新槽位状态为empty
-		if !atomic.CompareAndSwapUint32(&slot.flag, 2, 0) {
+		retries := 0
+		for {
+			if atomic.CompareAndSwapUint32(&slot.flag, 2, 0) {
+				break
+			}
+			retries++
+			if retries > maxRetries {
+				return zero, errors.New("consumer slot update failed after max retries")
+			}
 			runtime.Gosched()
-			continue
 		}
 
 		// 读取数据并更新全局消费者位置
 		valPtr := atomic.LoadPointer(&slot.data)
 		if valPtr == nil {
+			atomic.StoreUint32(&slot.flag, 2) // 回滚槽位状态
 			runtime.Gosched()
 			continue
 		}
