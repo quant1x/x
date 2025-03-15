@@ -8,150 +8,139 @@ import (
 )
 
 var (
-	ErrMaxConsumers   = errors.New("max consumers reached")
-	ErrInvalidSize    = errors.New("size must be power of two")
-	ErrConsumerClosed = errors.New("consumer closed")
+	ErrQueueFull   = errors.New("queue is full")
+	ErrQueueEmpty  = errors.New("queue is empty")
+	ErrInvalidSize = errors.New("size must be power of two")
 )
 
-// 队列核心结构
+//go:align 64
+type consumer struct {
+	pos    uint32   // 当前读取序列号（非索引）
+	active uint32   // 消费者状态
+	_      [56]byte // 填充至64字节
+}
+
 type RingBuffer[T any] struct {
-	buffer      []T           // 数据存储
-	size        uint32        // 队列容量（2^n）
-	mask        uint32        // 位掩码（size-1）
-	producerPos uint32        // 生产者位置（原子操作）
-	consumers   []consumerPtr // 消费者指针数组
+	buffer      []T
+	size        uint32 // 队列容量（必须为2^n）
+	mask        uint32 // 位掩码（size-1）
+	producerPos uint32 // 生产者序列号（持续递增）
+	consumers   []consumer
 }
 
-// 消费者指针（内存对齐优化）
-type consumerPtr struct {
-	posVersion uint64   // 高32位:版本号, 低32位:位置
-	active     uint32   // 活跃状态（0: 未激活, 1: 激活）
-	_          [52]byte // 填充至64字节（避免伪共享）
-}
-
-// 消费者句柄
 type Consumer[T any] struct {
 	rb    *RingBuffer[T]
-	index uint32 // 在consumers数组中的索引
+	index uint32
 }
 
-// 创建队列
+// 创建队列（正确初始化消费者）
 func New[T any](size uint32, maxConsumers int) (*RingBuffer[T], error) {
 	if size&(size-1) != 0 {
 		return nil, ErrInvalidSize
+	}
+
+	if unsafe.Sizeof(consumer{}) != 64 {
+		return nil, errors.New("consumer alignment failed")
 	}
 
 	rb := &RingBuffer[T]{
 		buffer:    make([]T, size),
 		size:      size,
 		mask:      size - 1,
-		consumers: make([]consumerPtr, maxConsumers),
+		consumers: make([]consumer, maxConsumers),
 	}
 
-	// 强制内存对齐（确保posVersion为64位对齐）
-	if uintptr(unsafe.Pointer(&rb.consumers[0]))%8 != 0 {
-		return nil, errors.New("consumerPtr not aligned")
+	// 初始化消费者位置为0
+	for i := range rb.consumers {
+		atomic.StoreUint32(&rb.consumers[i].pos, 0)
 	}
-
 	return rb, nil
 }
 
-// 创建新消费者
+// 注册消费者（修复初始化位置）
 func (rb *RingBuffer[T]) NewConsumer() (*Consumer[T], error) {
 	initialPos := atomic.LoadUint32(&rb.producerPos)
 
 	for i := range rb.consumers {
-		ptr := &rb.consumers[i]
-		// 使用CAS激活消费者
-		if atomic.CompareAndSwapUint32(&ptr.active, 0, 1) {
-			// 初始化位置和版本号 (version=0, pos=initialPos)
-			atomic.StoreUint64(&ptr.posVersion, uint64(initialPos))
+		c := &rb.consumers[i]
+		if atomic.CompareAndSwapUint32(&c.active, 0, 1) {
+			// 初始位置对齐到当前生产周期起点
+			base := initialPos - (initialPos % rb.size)
+			atomic.StoreUint32(&c.pos, base)
 			return &Consumer[T]{rb: rb, index: uint32(i)}, nil
 		}
 	}
-	return nil, ErrMaxConsumers
+	return nil, errors.New("max consumers reached")
 }
 
-// 关闭消费者
-func (c *Consumer[T]) Close() {
-	ptr := &c.rb.consumers[c.index]
-	atomic.StoreUint32(&ptr.active, 0)
-}
-
-// 生产者写入
-func (rb *RingBuffer[T]) Write(value T) {
+// 生产者写入（修复并发写入）
+func (rb *RingBuffer[T]) Write(value T) error {
 	for {
+		// 获取当前生产序列号
 		currentProd := atomic.LoadUint32(&rb.producerPos)
-		minPos := rb.findMinConsumerPos()
+		writeIndex := currentProd & rb.mask
 
-		// 队列已满检查
+		// 检查是否有空间可写
+		minPos := rb.findMinConsumerPos()
 		if currentProd-minPos >= rb.size {
+			return ErrQueueFull
+		}
+
+		// 预占写入位置（CAS替代AddUint32）
+		if !atomic.CompareAndSwapUint32(&rb.producerPos, currentProd, currentProd+1) {
 			runtime.Gosched()
 			continue
 		}
 
-		// 预占写入位置
-		newProd := currentProd + 1
-		if atomic.CompareAndSwapUint32(&rb.producerPos, currentProd, newProd) {
-			// 写入数据
-			rb.buffer[currentProd&rb.mask] = value
-			return
-		}
+		// 写入数据（保证内存可见性）
+		rb.buffer[writeIndex] = value
+		return nil
 	}
 }
 
-// 消费者读取（修复ABA问题）
+// 消费者读取（修复空判断）
 func (c *Consumer[T]) Read() (T, error) {
+	var zero T
 	ptr := &c.rb.consumers[c.index]
 
 	for {
-		// 1. 原子加载位置和版本号
-		current := atomic.LoadUint64(&ptr.posVersion)
-		currentVersion := uint32(current >> 32) // 高32位为版本号
-		currentPos := uint32(current)           // 低32位为位置
-
-		// 2. 检查消费者是否关闭
-		if atomic.LoadUint32(&ptr.active) == 0 {
-			var zero T
-			return zero, ErrConsumerClosed
-		}
-
-		// 3. 检查数据是否就绪
+		// 获取当前生产位置（内存屏障保证可见性）
 		currentProd := atomic.LoadUint32(&c.rb.producerPos)
-		if currentPos >= currentProd {
-			runtime.Gosched()
-			continue
+		currentRead := atomic.LoadUint32(&ptr.pos)
+
+		// 计算可用数据量（处理环形溢出）
+		available := currentProd - currentRead
+		if available == 0 {
+			return zero, ErrQueueEmpty
 		}
 
-		// 4. 读取数据
-		index := currentPos & c.rb.mask
-		value := c.rb.buffer[index]
+		// 读取数据
+		readIndex := currentRead & c.rb.mask
+		value := c.rb.buffer[readIndex]
 
-		// 5. 准备新位置和版本号
-		newPos := currentPos + 1
-		newVersion := currentVersion + 1 // 版本号递增
-		new := (uint64(newVersion) << 32) | uint64(newPos)
-
-		// 6. CAS更新（同时校验位置和版本号）
-		if atomic.CompareAndSwapUint64(&ptr.posVersion, current, new) {
+		// 原子更新读取位置
+		if atomic.CompareAndSwapUint32(&ptr.pos, currentRead, currentRead+1) {
 			return value, nil
 		}
-
-		// 7. 如果CAS失败，重试循环
+		runtime.Gosched()
 	}
 }
 
-// 查找最慢消费者位置
+// 查找最慢消费者（修复溢出处理）
 func (rb *RingBuffer[T]) findMinConsumerPos() uint32 {
-	minPos := atomic.LoadUint32(&rb.producerPos)
+	currentProd := atomic.LoadUint32(&rb.producerPos)
+	minPos := currentProd // 初始为生产者位置
+
 	for i := range rb.consumers {
-		ptr := &rb.consumers[i]
-		if atomic.LoadUint32(&ptr.active) == 1 {
-			// 从posVersion中提取位置
-			current := atomic.LoadUint64(&ptr.posVersion)
-			currentPos := uint32(current)
-			if currentPos < minPos {
-				minPos = currentPos
+		c := &rb.consumers[i]
+		if atomic.LoadUint32(&c.active) == 1 {
+			pos := atomic.LoadUint32(&c.pos)
+			// 处理溢出（当currentProd超过uint32最大值时）
+			if currentProd-pos > 0xFFFFFFFF-rb.size {
+				pos = currentProd - rb.size
+			}
+			if pos < minPos {
+				minPos = pos
 			}
 		}
 	}
