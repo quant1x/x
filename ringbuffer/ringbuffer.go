@@ -97,8 +97,6 @@ func (rb *RingBuffer[T]) Write(value T) error {
 func (rb *RingBuffer[T]) Read() (T, error) {
 	var zero T
 
-	const maxRetries = 10000 // 增加最大重试次数
-
 	for {
 		currentCons := atomic.LoadUint32(&rb.consumerPos)
 		currentProd := atomic.LoadUint32(&rb.producerPos)
@@ -124,16 +122,9 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 		}
 
 		// CAS更新槽位状态为empty
-		retries := 0
-		for {
-			if atomic.CompareAndSwapUint32(&slot.flag, 2, 0) {
-				break
-			}
-			retries++
-			if retries > maxRetries {
-				return zero, errors.New("consumer slot update failed after max retries")
-			}
+		if !atomic.CompareAndSwapUint32(&slot.flag, 2, 0) {
 			runtime.Gosched()
+			continue
 		}
 
 		// 读取数据并更新全局消费者位置

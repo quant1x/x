@@ -19,7 +19,7 @@ func main() {
 	var m sync.Mutex
 	dataTotal := 1000
 	producterNum := 3
-	consumerNum := 2
+	consumerNum := 1
 	wgLocal := sync.WaitGroup{}
 
 	prodAppend := func(waitGroup *sync.WaitGroup, v int) {
