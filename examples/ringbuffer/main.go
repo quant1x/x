@@ -3,45 +3,109 @@ package main
 import (
 	"fmt"
 	"github.com/quant1x/x/ringbuffer"
-	"time"
+	"log"
+	"slices"
+	"sync"
+	"sync/atomic"
 )
 
 func main() {
-	count := 1000
-	consumerNum := 2
-	rb := ringbuffer.NewRingBuffer(4) // 创建容量为4的队列
-
-	// 监控队列状态
-	go func() {
-		for {
-			fmt.Println("IsEmpty:", rb.IsEmpty(), "IsFull:", rb.IsFull())
-			time.Sleep(100 * time.Millisecond)
-		}
-	}()
-
-	// 消费者
-	for i := 0; i < consumerNum; i++ {
-		go func(no int) {
-			for {
-				if val, ok := rb.Dequeue(); ok {
-					fmt.Printf("No%d: Dequeued: %v\n", no, val)
-				}
-				//time.Sleep(500 * time.Millisecond)
-			}
-		}(i)
+	rb, err := ringbuffer.New[int](1024, 8)
+	if err != nil {
+		log.Fatal(err)
 	}
-	time.Sleep(time.Second)
-	// 生产者
-	go func() {
-		for i := 0; i < count; i++ {
-			if rb.Enqueue(i) {
-				fmt.Printf("Enqueued: %d\n", i)
-			} else {
-				fmt.Printf("Enqueue failed: %d\n", i)
-			}
-			//time.Sleep(200 * time.Millisecond)
-		}
-	}()
+	var data []int
+	var result []int
+	var m sync.Mutex
+	dataTotal := 1000
+	producterNum := 1
+	consumerNum := 2
+	wgLocal := sync.WaitGroup{}
 
-	time.Sleep(10 * time.Second)
+	prodAppend := func(waitGroup *sync.WaitGroup, v int) {
+		m.Lock()
+		defer m.Unlock()
+		defer waitGroup.Done()
+		data = append(data, v)
+	}
+	conAppend := func(waitGroup *sync.WaitGroup, v int) {
+		m.Lock()
+		defer m.Unlock()
+		defer waitGroup.Done()
+		result = append(result, v)
+	}
+
+	//defer func() {
+	//	slices.Sort(data)
+	//	slices.Sort(result)
+	//	//got := reflect.DeepEqual(data, result)
+	//	//if got != true {
+	//	//	t.Fatalf("want %v, got %v", true, got)
+	//	//}
+	//	if len(data) != len(result) {
+	//		log.Fatal("len(data) != len(result):", len(data), len(result))
+	//	}
+	//	for i, _ := range data {
+	//		if data[i] != result[i] {
+	//			log.Fatal("data[i] != result[i]:", data[i], result[i])
+	//		}
+	//	}
+	//	fmt.Println(result)
+	//}()
+	var readNum atomic.Int32
+	readNum.Store(0)
+	// 启动4个消费者
+	for i := 0; i < consumerNum; i++ {
+		wgLocal.Add(1)
+		go func(waitGroup *sync.WaitGroup, no int) {
+			defer waitGroup.Done()
+			c, _ := rb.NewConsumer()
+			//defer c.Close()
+			for readNum.Load() < int32(dataTotal) {
+				v, err := c.Read()
+				//fmt.Println("consumer:", no, "<=", v)
+				if err == nil {
+					waitGroup.Add(1)
+					go conAppend(waitGroup, v)
+					readNum.Add(1)
+				}
+				if readNum.Load() > int32(dataTotal)-2 {
+					fmt.Println("No:", i, "readNum:", readNum.Load())
+				}
+			}
+			fmt.Println("No:", i, "exit")
+		}(&wgLocal, i)
+	}
+
+	// 启动4个生产者
+	for i := 0; i < producterNum; i++ {
+		wgLocal.Add(1)
+		go func(waitGroup *sync.WaitGroup, no int) {
+			defer waitGroup.Done()
+			for j := 0; j < dataTotal; j++ {
+				v := no*dataTotal + j
+				rb.Write(v) // 忽略错误处理
+				waitGroup.Add(1)
+				go prodAppend(waitGroup, v)
+			}
+		}(&wgLocal, i)
+	}
+	wgLocal.Wait()
+	slices.Sort(data)
+	slices.Sort(result)
+	//got := reflect.DeepEqual(data, result)
+	//if got != true {
+	//	t.Fatalf("want %v, got %v", true, got)
+	//}
+	fmt.Println(data)
+	fmt.Println(result)
+	if len(data) != len(result) {
+		log.Fatal("len(data) != len(result):", len(data), len(result))
+	}
+	for i, _ := range data {
+		if data[i] != result[i] {
+			log.Fatal("data[i] != result[i]:", data[i], result[i])
+		}
+	}
+
 }
