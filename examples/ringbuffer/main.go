@@ -19,7 +19,7 @@ func main() {
 	var m sync.Mutex
 	dataTotal := 1000
 	producterNum := 1
-	consumerNum := 2
+	consumerNum := 4
 	wgLocal := sync.WaitGroup{}
 
 	prodAppend := func(waitGroup *sync.WaitGroup, v int) {
@@ -68,12 +68,16 @@ func main() {
 					waitGroup.Add(1)
 					go conAppend(waitGroup, v)
 					readNum.Add(1)
+				} else {
+					fmt.Println(err)
+					break
 				}
 				if readNum.Load() > int32(dataTotal)-2 {
 					fmt.Println("No:", i, "readNum:", readNum.Load())
 				}
 			}
 			fmt.Println("No:", i, "exit")
+			rb.Close()
 		}(&wgLocal, i)
 	}
 
