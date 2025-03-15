@@ -18,7 +18,7 @@ func main() {
 	var result []int
 	var m sync.Mutex
 	dataTotal := 1000
-	producterNum := 3
+	producerNum := 3
 	consumerNum := 1
 	wgLocal := sync.WaitGroup{}
 
@@ -35,7 +35,7 @@ func main() {
 		result = append(result, v)
 	}
 
-	needReadCount := producterNum * dataTotal
+	needReadCount := producerNum * dataTotal
 	var readNum atomic.Int32
 	readNum.Store(0)
 	// 启动4个消费者
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	// 启动4个生产者
-	for i := 0; i < producterNum; i++ {
+	for i := 0; i < producerNum; i++ {
 		wgLocal.Add(1)
 		go func(waitGroup *sync.WaitGroup, no int) {
 			defer waitGroup.Done()
