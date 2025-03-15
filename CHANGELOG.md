@@ -3,6 +3,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.18] - 2025-03-16
+### Changed
+- 新增系统信号监控封装
+- 新增系统内部的全局上下文
+- 增加一个临时的logger, 用于观察调试
+- 增加专用于内置功能的任务调度器
+- 增加每日定时初始化的功能，第一版
+- 增加按照cron定时规则的周期性sync.Once功能
+- 增加按照周期性Once组件的测试应用
+- 新增gocron的依赖, 版本号2.16.1
+
 ## [0.0.17] - 2025-03-15
 ### Changed
 - 将该项目打包成一个控制台简单可以使用的工具, 并计划支持跨平台的守护进程
@@ -26,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - 修订部分测试代码
 - 新增cpu缓存行尺寸的常量
 - 更新依赖库版本
+- update changelog
 
 ## [0.0.16] - 2025-03-13
 ### Changed
@@ -168,7 +180,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.17...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.18...HEAD
+[0.0.18]: https://gitee.com/quant1x/x-go.git/compare/v0.0.17...v0.0.18
 [0.0.17]: https://gitee.com/quant1x/x-go.git/compare/v0.0.16...v0.0.17
 [0.0.16]: https://gitee.com/quant1x/x-go.git/compare/v0.0.15...v0.0.16
 [0.0.15]: https://gitee.com/quant1x/x-go.git/compare/v0.0.14...v0.0.15
