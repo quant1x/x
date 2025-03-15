@@ -3,10 +3,35 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.17] - 2025-03-15
+### Changed
+- 将该项目打包成一个控制台简单可以使用的工具, 并计划支持跨平台的守护进程
+- 更新依赖库版本
+- 引入github.com/GavinClarke0/lockless-generic-ring-buffer作为实时环形队列组件, 并尝试修改为动态的消费模式
+- 新增求不小于一个整型的最小2的幂次方函数
+- 新增用区分并行和并发的源文件
+- 新增获取gid的功能函数
+- 补充RTRB代码的注释
+- 新增一个RingBuffer的spsc的实现
+- 优化无锁环形队列为单生产多消费模式(spmc)
+- 单生产单消费, 确定没有问题
+- 去掉冗余注释
+- 调整RB应用测试代码
+- 调整部分代码逻辑
+- 继续优化了，RingBuffer支持了单生产多消费模式
+- 继续优化了，RingBuffer支持了单生产多消费模式
+- 继续优化了，RingBuffer支持了多生产多消费模式
+- 继续优化了，RingBuffer支持了多生产单消费模式，存在小概率死循环的问题
+- 继续优化了，RingBuffer支持了多生产单消费模式，修复小概率死循环的问题。至此无锁环形队列spsc、spmc、mpsc、mpmc四种使用模式全部支持。
+- 修订部分测试代码
+- 新增cpu缓存行尺寸的常量
+- 更新依赖库版本
+
 ## [0.0.16] - 2025-03-13
 ### Changed
 - 新增文件路径判断函数
 - 文件系统功能归于fs包
+- update changelog
 
 ## [0.0.15] - 2025-03-13
 ### Changed
@@ -143,7 +168,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.16...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.17...HEAD
+[0.0.17]: https://gitee.com/quant1x/x-go.git/compare/v0.0.16...v0.0.17
 [0.0.16]: https://gitee.com/quant1x/x-go.git/compare/v0.0.15...v0.0.16
 [0.0.15]: https://gitee.com/quant1x/x-go.git/compare/v0.0.14...v0.0.15
 [0.0.14]: https://gitee.com/quant1x/x-go.git/compare/v0.0.13...v0.0.14
