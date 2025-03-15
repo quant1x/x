@@ -2,6 +2,7 @@ package ringbuffer
 
 import (
 	"errors"
+	"math"
 	"runtime"
 	"sync/atomic"
 	"unsafe"
@@ -9,7 +10,6 @@ import (
 
 var (
 	ErrQueueFull   = errors.New("queue is full")
-	ErrQueueEmpty  = errors.New("queue is empty")
 	ErrInvalidSize = errors.New("size must be power of two")
 )
 
@@ -17,15 +17,16 @@ var (
 type consumer struct {
 	pos    uint32
 	active uint32
-	_      [56]byte // 填充至64字节
+	_      [56]byte // 填充至64字节，避免伪共享
 }
 
 type RingBuffer[T any] struct {
-	buffer      []atomic.Value // 使用atomic.Value存储数据
+	buffer      []unsafe.Pointer // 使用unsafe.Pointer存储数据
 	size        uint32
 	mask        uint32
 	producerPos uint32
 	consumers   []consumer
+	closed      uint32
 }
 
 type Consumer[T any] struct {
@@ -33,14 +34,13 @@ type Consumer[T any] struct {
 	index uint32
 }
 
-// 创建队列
 func New[T any](size uint32, maxConsumers int) (*RingBuffer[T], error) {
-	if size&(size-1) != 0 {
+	if size == 0 || (size&(size-1)) != 0 {
 		return nil, ErrInvalidSize
 	}
 
 	rb := &RingBuffer[T]{
-		buffer:    make([]atomic.Value, size),
+		buffer:    make([]unsafe.Pointer, size),
 		size:      size,
 		mask:      size - 1,
 		consumers: make([]consumer, maxConsumers),
@@ -49,10 +49,14 @@ func New[T any](size uint32, maxConsumers int) (*RingBuffer[T], error) {
 	if unsafe.Sizeof(consumer{}) != 64 {
 		return nil, errors.New("consumer alignment failed")
 	}
+
+	for i := range rb.buffer {
+		atomic.StorePointer(&rb.buffer[i], nil)
+	}
+
 	return rb, nil
 }
 
-// 注册消费者
 func (rb *RingBuffer[T]) NewConsumer() (*Consumer[T], error) {
 	initialPos := atomic.LoadUint32(&rb.producerPos)
 
@@ -67,30 +71,32 @@ func (rb *RingBuffer[T]) NewConsumer() (*Consumer[T], error) {
 	return nil, errors.New("max consumers reached")
 }
 
-// 生产者写入（原子存储）
 func (rb *RingBuffer[T]) Write(value T) error {
+	if atomic.LoadUint32(&rb.closed) == 1 {
+		return errors.New("queue closed")
+	}
+
+	var currentProd, minPos uint32
 	for {
-		currentProd := atomic.LoadUint32(&rb.producerPos)
-		minPos := rb.findMinConsumerPos()
+		currentProd = atomic.LoadUint32(&rb.producerPos)
+		minPos = rb.findMinConsumerPos()
 
 		if currentProd-minPos >= rb.size {
 			return ErrQueueFull
 		}
 
-		newProd := currentProd + 1
-		if !atomic.CompareAndSwapUint32(&rb.producerPos, currentProd, newProd) {
-			runtime.Gosched()
-			continue
-		}
-
-		// 原子存储数据
+		valPtr := unsafe.Pointer(&value)
 		index := currentProd & rb.mask
-		rb.buffer[index].Store(value)
-		return nil
+
+		// 写入内存屏障确保数据可见性
+		atomic.StorePointer(&rb.buffer[index], valPtr)
+		if atomic.CompareAndSwapUint32(&rb.producerPos, currentProd, currentProd+1) {
+			return nil
+		}
+		runtime.Gosched()
 	}
 }
 
-// 消费者读取（原子加载）
 func (c *Consumer[T]) Read() (T, error) {
 	var zero T
 	ptr := &c.rb.consumers[c.index]
@@ -99,41 +105,62 @@ func (c *Consumer[T]) Read() (T, error) {
 		currentProd := atomic.LoadUint32(&c.rb.producerPos)
 		currentRead := atomic.LoadUint32(&ptr.pos)
 
-		if currentRead >= currentProd {
-			return zero, ErrQueueEmpty
+		// 检查队列是否关闭
+		if atomic.LoadUint32(&c.rb.closed) == 1 {
+			return zero, errors.New("queue closed")
 		}
 
-		// 原子加载数据
-		readIndex := currentRead & c.rb.mask
-		val := c.rb.buffer[readIndex].Load()
-		if val == nil {
+		if currentRead >= currentProd {
+			// 队列为空时让出 CPU 时间片
 			runtime.Gosched()
 			continue
 		}
 
-		if atomic.CompareAndSwapUint32(&ptr.pos, currentRead, currentRead+1) {
-			return val.(T), nil
+		readIndex := currentRead & c.rb.mask
+		valPtr := atomic.LoadPointer(&c.rb.buffer[readIndex])
+
+		if valPtr == nil {
+			runtime.Gosched()
+			continue
 		}
-		runtime.Gosched()
+
+		// 双重检查确保数据有效性
+		const maxRetries = 1000
+		retries := 0
+		for {
+			if atomic.CompareAndSwapUint32(&ptr.pos, currentRead, currentRead+1) {
+				break
+			}
+			retries++
+			if retries > maxRetries {
+				return zero, errors.New("consumer position update failed after max retries")
+			}
+			runtime.Gosched()
+		}
+
+		// 确保读取数据后清空槽位
+		atomic.StorePointer(&c.rb.buffer[readIndex], nil)
+		return *(*T)(valPtr), nil
 	}
 }
 
-// 查找最慢消费者（逻辑不变）
 func (rb *RingBuffer[T]) findMinConsumerPos() uint32 {
-	currentProd := atomic.LoadUint32(&rb.producerPos)
-	minPos := currentProd
-
+	minPos := uint32(math.MaxUint32)
 	for i := range rb.consumers {
 		c := &rb.consumers[i]
 		if atomic.LoadUint32(&c.active) == 1 {
 			pos := atomic.LoadUint32(&c.pos)
-			if currentProd-pos >= rb.size {
-				pos = currentProd - rb.size
-			}
 			if pos < minPos {
 				minPos = pos
 			}
 		}
 	}
+	if minPos == math.MaxUint32 {
+		return atomic.LoadUint32(&rb.producerPos)
+	}
 	return minPos
+}
+
+func (rb *RingBuffer[T]) Close() {
+	atomic.StoreUint32(&rb.closed, 1)
 }
