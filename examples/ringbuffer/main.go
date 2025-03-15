@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	rb, err := ringbuffer.New[int](1024, 8)
+	rb, err := ringbuffer.New[int](1024)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,8 +18,8 @@ func main() {
 	var result []int
 	var m sync.Mutex
 	dataTotal := 1000
-	producterNum := 1
-	consumerNum := 4
+	producterNum := 2
+	consumerNum := 1
 	wgLocal := sync.WaitGroup{}
 
 	prodAppend := func(waitGroup *sync.WaitGroup, v int) {
@@ -35,23 +35,7 @@ func main() {
 		result = append(result, v)
 	}
 
-	//defer func() {
-	//	slices.Sort(data)
-	//	slices.Sort(result)
-	//	//got := reflect.DeepEqual(data, result)
-	//	//if got != true {
-	//	//	t.Fatalf("want %v, got %v", true, got)
-	//	//}
-	//	if len(data) != len(result) {
-	//		log.Fatal("len(data) != len(result):", len(data), len(result))
-	//	}
-	//	for i, _ := range data {
-	//		if data[i] != result[i] {
-	//			log.Fatal("data[i] != result[i]:", data[i], result[i])
-	//		}
-	//	}
-	//	fmt.Println(result)
-	//}()
+	needReadCount := producterNum * dataTotal
 	var readNum atomic.Int32
 	readNum.Store(0)
 	// 启动4个消费者
@@ -59,10 +43,9 @@ func main() {
 		wgLocal.Add(1)
 		go func(waitGroup *sync.WaitGroup, no int) {
 			defer waitGroup.Done()
-			c, _ := rb.NewConsumer()
 			//defer c.Close()
-			for readNum.Load() < int32(dataTotal) {
-				v, err := c.Read()
+			for readNum.Load() < int32(needReadCount) {
+				v, err := rb.Read()
 				//fmt.Println("consumer:", no, "<=", v)
 				if err == nil {
 					waitGroup.Add(1)
@@ -72,7 +55,7 @@ func main() {
 					fmt.Println(err)
 					break
 				}
-				if readNum.Load() > int32(dataTotal)-2 {
+				if readNum.Load() > int32(needReadCount)-2 {
 					fmt.Println("No:", i, "readNum:", readNum.Load())
 				}
 			}

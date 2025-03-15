@@ -2,7 +2,6 @@ package ringbuffer
 
 import (
 	"errors"
-	"math"
 	"runtime"
 	"sync/atomic"
 	"unsafe"
@@ -13,154 +12,136 @@ var (
 	ErrInvalidSize = errors.New("size must be power of two")
 )
 
-//go:align 64
-type consumer struct {
-	pos    uint32
-	active uint32
-	_      [56]byte // 填充至64字节，避免伪共享
+// Slot represents a single slot in the ring buffer
+type Slot[T any] struct {
+	data unsafe.Pointer // 数据存储
+	flag uint32         // 状态标志 (0: empty, 1: writing, 2: readable)
 }
 
+// RingBuffer represents the MPMC ring buffer
 type RingBuffer[T any] struct {
-	buffer      []unsafe.Pointer // 使用unsafe.Pointer存储数据
+	slots       []Slot[T] // 使用槽位数组存储数据
 	size        uint32
 	mask        uint32
-	producerPos uint32
-	consumers   []consumer
-	closed      uint32
+	producerPos uint32 // 全局生产者位置
+	consumerPos uint32 // 全局消费者位置
+	closed      uint32 // 关闭标记
 }
 
-type Consumer[T any] struct {
-	rb    *RingBuffer[T]
-	index uint32
-}
-
-func New[T any](size uint32, maxConsumers int) (*RingBuffer[T], error) {
+// New creates a new MPMC ring buffer
+func New[T any](size uint32) (*RingBuffer[T], error) {
 	if size == 0 || (size&(size-1)) != 0 {
 		return nil, ErrInvalidSize
 	}
 
 	rb := &RingBuffer[T]{
-		buffer:    make([]unsafe.Pointer, size),
-		size:      size,
-		mask:      size - 1,
-		consumers: make([]consumer, maxConsumers),
+		slots: make([]Slot[T], size),
+		size:  size,
+		mask:  size - 1,
 	}
 
-	if unsafe.Sizeof(consumer{}) != 64 {
-		return nil, errors.New("consumer alignment failed")
-	}
-
-	for i := range rb.buffer {
-		atomic.StorePointer(&rb.buffer[i], nil)
+	for i := range rb.slots {
+		atomic.StoreUint32(&rb.slots[i].flag, 0) // 初始化为empty状态
 	}
 
 	return rb, nil
 }
 
-func (rb *RingBuffer[T]) NewConsumer() (*Consumer[T], error) {
-	initialPos := atomic.LoadUint32(&rb.producerPos)
-
-	for i := range rb.consumers {
-		c := &rb.consumers[i]
-		if atomic.CompareAndSwapUint32(&c.active, 0, 1) {
-			base := initialPos - (initialPos % rb.size)
-			atomic.StoreUint32(&c.pos, base)
-			return &Consumer[T]{rb: rb, index: uint32(i)}, nil
-		}
-	}
-	return nil, errors.New("max consumers reached")
-}
-
+// Write writes data into the ring buffer by a producer
 func (rb *RingBuffer[T]) Write(value T) error {
 	if atomic.LoadUint32(&rb.closed) == 1 {
 		return errors.New("queue closed")
 	}
 
-	var currentProd, minPos uint32
+	var currentProd, minCons uint32
 	for {
 		currentProd = atomic.LoadUint32(&rb.producerPos)
-		minPos = rb.findMinConsumerPos()
+		minCons = atomic.LoadUint32(&rb.consumerPos)
 
-		if currentProd-minPos >= rb.size {
+		if currentProd-minCons >= rb.size {
 			return ErrQueueFull
 		}
 
-		valPtr := unsafe.Pointer(&value)
 		index := currentProd & rb.mask
+		slot := &rb.slots[index]
 
-		// 写入内存屏障确保数据可见性
-		atomic.StorePointer(&rb.buffer[index], valPtr)
-		if atomic.CompareAndSwapUint32(&rb.producerPos, currentProd, currentProd+1) {
-			return nil
-		}
-		runtime.Gosched()
-	}
-}
-
-func (c *Consumer[T]) Read() (T, error) {
-	var zero T
-	ptr := &c.rb.consumers[c.index]
-
-	for {
-		currentProd := atomic.LoadUint32(&c.rb.producerPos)
-		currentRead := atomic.LoadUint32(&ptr.pos)
-
-		// 检查队列是否关闭
-		if atomic.LoadUint32(&c.rb.closed) == 1 {
-			return zero, errors.New("queue closed")
-		}
-
-		if currentRead >= currentProd {
-			// 队列为空时让出 CPU 时间片
+		// 尝试获取写权限
+		if atomic.LoadUint32(&slot.flag) != 0 {
 			runtime.Gosched()
 			continue
 		}
 
-		readIndex := currentRead & c.rb.mask
-		valPtr := atomic.LoadPointer(&c.rb.buffer[readIndex])
+		// CAS更新槽位状态为writing
+		if !atomic.CompareAndSwapUint32(&slot.flag, 0, 1) {
+			runtime.Gosched()
+			continue
+		}
 
+		// 写入数据并设置为readable状态
+		atomic.StorePointer(&slot.data, unsafe.Pointer(&value))
+		atomic.StoreUint32(&slot.flag, 2)
+
+		// 更新全局生产者位置
+		if atomic.CompareAndSwapUint32(&rb.producerPos, currentProd, currentProd+1) {
+			return nil
+		}
+
+		// 如果更新失败，回滚槽位状态
+		atomic.StoreUint32(&slot.flag, 0)
+		runtime.Gosched()
+	}
+}
+
+// Read reads data from the ring buffer by a consumer
+func (rb *RingBuffer[T]) Read() (T, error) {
+	var zero T
+
+	for {
+		currentCons := atomic.LoadUint32(&rb.consumerPos)
+		currentProd := atomic.LoadUint32(&rb.producerPos)
+
+		if atomic.LoadUint32(&rb.closed) == 1 && currentCons >= currentProd {
+			return zero, errors.New("queue closed")
+		}
+
+		if currentCons >= currentProd {
+			runtime.Gosched()
+			continue
+		}
+
+		index := currentCons & rb.mask
+		slot := &rb.slots[index]
+
+		// 检查槽位是否可读
+		if atomic.LoadUint32(&slot.flag) != 2 {
+			runtime.Gosched()
+			continue
+		}
+
+		// CAS更新槽位状态为empty
+		if !atomic.CompareAndSwapUint32(&slot.flag, 2, 0) {
+			runtime.Gosched()
+			continue
+		}
+
+		// 读取数据并更新全局消费者位置
+		valPtr := atomic.LoadPointer(&slot.data)
 		if valPtr == nil {
 			runtime.Gosched()
 			continue
 		}
 
-		// 双重检查确保数据有效性
-		const maxRetries = 1000
-		retries := 0
-		for {
-			if atomic.CompareAndSwapUint32(&ptr.pos, currentRead, currentRead+1) {
-				break
-			}
-			retries++
-			if retries > maxRetries {
-				return zero, errors.New("consumer position update failed after max retries")
-			}
-			runtime.Gosched()
+		if atomic.CompareAndSwapUint32(&rb.consumerPos, currentCons, currentCons+1) {
+			return *(*T)(valPtr), nil
 		}
 
-		// 确保读取数据后清空槽位
-		atomic.StorePointer(&c.rb.buffer[readIndex], nil)
-		return *(*T)(valPtr), nil
+		// 如果更新失败，回滚槽位状态
+		atomic.StoreUint32(&slot.flag, 2)
+		runtime.Gosched()
 	}
 }
 
-func (rb *RingBuffer[T]) findMinConsumerPos() uint32 {
-	minPos := uint32(math.MaxUint32)
-	for i := range rb.consumers {
-		c := &rb.consumers[i]
-		if atomic.LoadUint32(&c.active) == 1 {
-			pos := atomic.LoadUint32(&c.pos)
-			if pos < minPos {
-				minPos = pos
-			}
-		}
-	}
-	if minPos == math.MaxUint32 {
-		return atomic.LoadUint32(&rb.producerPos)
-	}
-	return minPos
-}
-
+// Close closes the ring buffer
 func (rb *RingBuffer[T]) Close() {
 	atomic.StoreUint32(&rb.closed, 1)
 }
