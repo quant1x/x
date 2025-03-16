@@ -3,11 +3,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.20] - 2025-03-16
+### Changed
+- 剔除关闭全局调度器函数中的终端输出信息
+
 ## [0.0.19] - 2025-03-16
 ### Changed
 - 系统底层的组件暂时去掉日志的输出
 - 消除Unused告警信息
 - 补充测试代码
+- update changelog
 
 ## [0.0.18] - 2025-03-16
 ### Changed
@@ -187,7 +192,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.19...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.20...HEAD
+[0.0.20]: https://gitee.com/quant1x/x-go.git/compare/v0.0.19...v0.0.20
 [0.0.19]: https://gitee.com/quant1x/x-go.git/compare/v0.0.18...v0.0.19
 [0.0.18]: https://gitee.com/quant1x/x-go.git/compare/v0.0.17...v0.0.18
 [0.0.17]: https://gitee.com/quant1x/x-go.git/compare/v0.0.16...v0.0.17
