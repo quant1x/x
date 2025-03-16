@@ -59,6 +59,7 @@ func RegisterHook(name string, cb func()) context.Context {
 			}
 		}
 	}()
+	_ = name
 	return ctx
 }
 
