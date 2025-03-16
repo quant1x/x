@@ -20,7 +20,7 @@ func lazyInitScheduler() {
 	// 创建一个调度器
 	cron, err := gocron.NewScheduler(
 		gocron.WithLocation(global_scheduler_location),
-		gocron.WithLogger(logger),
+		//gocron.WithLogger(logger),
 	)
 	if err != nil {
 		panic(err)
@@ -34,7 +34,7 @@ func stopScheduler() {
 	fmt.Println("stop scheduler-1")
 	err := global_scheduler_cron.Shutdown()
 	if err != nil {
-		logger.Error("x/cron: scheduler shutdown err:", err)
+		//logger.Error("x/cron: scheduler shutdown err:", err)
 	}
 	fmt.Println("stop scheduler-2")
 }

@@ -42,7 +42,7 @@ func BenchmarkDailyOnce(b *testing.B) {
 }
 
 func BenchmarkPeriodOnce(b *testing.B) {
-	d, _ := CreatePeriodOnce(0, 1)
+	d := CreatePeriodOnceWithSecond(5)
 	for i := 0; i < b.N; i++ {
 		d.Do(func() {})
 	}

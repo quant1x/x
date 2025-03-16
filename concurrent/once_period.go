@@ -5,23 +5,35 @@ import (
 	"github.com/quant1x/x/core"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
+// PeriodOnce 周期性懒加载锁
 type PeriodOnce struct {
 	done atomic.Uint32
 	m    sync.Mutex
 }
 
-func CreatePeriodOnce(hour, minute int) (*PeriodOnce, error) {
-	once := &PeriodOnce{}
-	spec := fmt.Sprintf("1/%d %d * * * *", minute, hour)
-	spec = fmt.Sprintf("*/%d * * * * *", minute)
+// CreatePeriodOnceWithHourAndMinute 创建每日按时分初始化的周期性懒加载锁
+func CreatePeriodOnceWithHourAndMinute(hour, minute int) *PeriodOnce {
+	spec := fmt.Sprintf("0 %d %d * * *", minute, hour)
+	return createPeriodOnce(spec)
+}
+
+// CreatePeriodOnceWithSecond 创建间隔秒数初始化的周期性懒加载锁
+func CreatePeriodOnceWithSecond(seconds int) *PeriodOnce {
+	spec := fmt.Sprintf("*/%d * * * * *", seconds)
+	return createPeriodOnce(spec)
+}
+
+func createPeriodOnce(spec string) *PeriodOnce {
+	once := PeriodOnce{}
 	err := core.AddJob(spec, func() {
-		fmt.Println("2-", time.Now())
 		once.done.Store(stateNeedInit)
 	})
-	return once, err
+	if err != nil {
+		panic(err)
+	}
+	return &once
 }
 
 func (o *PeriodOnce) Do(f func()) {

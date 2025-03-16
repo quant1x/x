@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/quant1x/x/std/signal"
 	"sync"
+	"time"
 )
 
 var (
@@ -46,13 +47,13 @@ func RegisterHook(name string, cb func()) context.Context {
 			select {
 			case <-ctx.Done():
 				// 收到退出信号
-				logger.Debug("x/context: stopping %s", name)
+				//logger.Debug("x/context: stopping %s", name)
 				// 执行回调
 				cb()
-				logger.Debug("x/context: %s stopped", name)
+				//logger.Debug("x/context: %s stopped", name)
 				// cancel 子context
 				cancel()
-				logger.Debug("x/context: %s finished", name)
+				//logger.Debug("x/context: %s finished", name)
 				globalWaitGroup.Done()
 				return
 			}
@@ -68,17 +69,28 @@ func applicationShutdown() {
 }
 
 // WaitForShutdown 阻塞等待关闭信号
-func WaitForShutdown() {
+//
+//	如果传入d, 视为等待d秒结束
+//	如果没有传值, 则默认为等待信号
+func WaitForShutdown(d ...int) {
 	globalOnce.Do(initContext)
 	interrupt := signal.NotifyForShutdown()
-	select {
-	case <-globalContext.Done():
-		logger.Info("application shutdown...")
-		applicationShutdown()
-		break
-	case sig := <-interrupt:
-		logger.Info("interrupt: %s", sig.String())
-		applicationShutdown()
-		break
+	delay := 0
+	if len(d) > 0 {
+		delay = d[0]
 	}
+	if delay > 0 {
+		time.Sleep(time.Second * time.Duration(delay))
+	} else {
+		select {
+		case <-globalContext.Done():
+			//logger.Info("application shutdown...")
+			break
+		case sig := <-interrupt:
+			//logger.Info("interrupt: %s", sig.String())
+			_ = sig
+			break
+		}
+	}
+	applicationShutdown()
 }

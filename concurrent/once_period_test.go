@@ -8,12 +8,9 @@ import (
 )
 
 func TestPeriodOnce(t *testing.T) {
-	once, err := CreatePeriodOnce(0, 5)
-	if err != nil {
-		t.Fatal(err)
-	}
+	once := CreatePeriodOnceWithSecond(1)
 	once.Do(func() {
 		fmt.Println("1-", time.Now())
 	})
-	core.WaitForShutdown()
+	core.WaitForShutdown(5)
 }
