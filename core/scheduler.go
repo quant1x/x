@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"github.com/go-co-op/gocron/v2"
 	"sync"
 	"time"
@@ -31,12 +30,12 @@ func lazyInitScheduler() {
 }
 
 func stopScheduler() {
-	fmt.Println("stop scheduler-1")
+	//fmt.Println("stop scheduler-1")
 	err := global_scheduler_cron.Shutdown()
 	if err != nil {
 		//logger.Error("x/cron: scheduler shutdown err:", err)
 	}
-	fmt.Println("stop scheduler-2")
+	//fmt.Println("stop scheduler-2")
 }
 
 func AddJob(spec string, cmd func()) error {
