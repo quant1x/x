@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.0.19] - 2025-03-16
+### Changed
+- 系统底层的组件暂时去掉日志的输出
+- 消除Unused告警信息
+- 补充测试代码
+
 ## [0.0.18] - 2025-03-16
 ### Changed
 - 新增系统信号监控封装
@@ -13,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - 增加按照cron定时规则的周期性sync.Once功能
 - 增加按照周期性Once组件的测试应用
 - 新增gocron的依赖, 版本号2.16.1
+- update changelog
 
 ## [0.0.17] - 2025-03-15
 ### Changed
@@ -180,7 +187,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.18...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.0.19...HEAD
+[0.0.19]: https://gitee.com/quant1x/x-go.git/compare/v0.0.18...v0.0.19
 [0.0.18]: https://gitee.com/quant1x/x-go.git/compare/v0.0.17...v0.0.18
 [0.0.17]: https://gitee.com/quant1x/x-go.git/compare/v0.0.16...v0.0.17
 [0.0.16]: https://gitee.com/quant1x/x-go.git/compare/v0.0.15...v0.0.16
