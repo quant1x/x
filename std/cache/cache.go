@@ -2,12 +2,13 @@ package cache
 
 import (
 	"fmt"
-	"github.com/quant1x/x/std/mem"
 	"hash/crc32"
 	"os"
 	"path/filepath"
 	"sync"
 	"unsafe"
+
+	"github.com/quant1x/x/std/mem"
 )
 
 const (

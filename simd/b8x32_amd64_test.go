@@ -1,9 +1,10 @@
 package simd
 
 import (
-	"github.com/quant1x/x/assert"
 	"slices"
 	"testing"
+
+	"github.com/quant1x/x/assert"
 )
 
 func Test_b1x8_and(t *testing.T) {

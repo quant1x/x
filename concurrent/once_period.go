@@ -2,9 +2,10 @@ package concurrent
 
 import (
 	"fmt"
-	"github.com/quant1x/x/core"
 	"sync"
 	"sync/atomic"
+
+	"github.com/quant1x/x/core"
 )
 
 // PeriodOnce 周期性懒加载锁

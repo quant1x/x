@@ -1,9 +1,10 @@
 package core
 
 import (
-	"github.com/go-co-op/gocron/v2"
 	"sync"
 	"time"
+
+	"github.com/go-co-op/gocron/v2"
 )
 
 var (

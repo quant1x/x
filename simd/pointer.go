@@ -1,8 +1,9 @@
 package simd
 
 import (
-	"github.com/quant1x/x/std"
 	"unsafe"
+
+	"github.com/quant1x/x/std"
 )
 
 func convect[E1 number, E2 number](from []E1) []E2 {

@@ -2,9 +2,10 @@ package core
 
 import (
 	"context"
-	"github.com/quant1x/x/std/signal"
 	"sync"
 	"time"
+
+	"github.com/quant1x/x/std/signal"
 )
 
 var (

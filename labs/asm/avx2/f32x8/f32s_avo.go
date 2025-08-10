@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mmcloughlin/avo/attr"
 	. "github.com/mmcloughlin/avo/build"
 	. "github.com/mmcloughlin/avo/operand"
 	"github.com/quant1x/x/labs/asm/avx2"
-	"strings"
 )
 
 // 单精度浮点数组a和b计算, 结果保存在result, 返回剩余多少个元素(arithmetic,binary operation)

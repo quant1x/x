@@ -2,8 +2,9 @@ package simd
 
 import (
 	"fmt"
-	"github.com/quant1x/x/assert"
 	"testing"
+
+	"github.com/quant1x/x/assert"
 )
 
 func Benchmark_mm256_add_ps(tb *testing.B) {

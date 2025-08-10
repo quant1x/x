@@ -5,9 +5,10 @@
 package cache
 
 import (
-	"golang.org/x/sys/unix"
 	"os"
 	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 type posixMmap struct {

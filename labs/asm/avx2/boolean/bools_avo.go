@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/mmcloughlin/avo/attr"
 	. "github.com/mmcloughlin/avo/build"
 	. "github.com/mmcloughlin/avo/operand"
 	"github.com/quant1x/x/labs/asm/avx2"
-	"strings"
 )
 
 // 布尔数组a和b逻辑计算, 结果保存在result, 返回剩余多少个元素(arithmetic,binary operation)

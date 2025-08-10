@@ -2,9 +2,10 @@ package concurrent
 
 import (
 	"fmt"
-	"github.com/quant1x/x/core"
 	"testing"
 	"time"
+
+	"github.com/quant1x/x/core"
 )
 
 func TestPeriodOnce(t *testing.T) {

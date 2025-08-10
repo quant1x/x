@@ -2,9 +2,10 @@ package core
 
 import (
 	"fmt"
-	"github.com/go-co-op/gocron/v2"
 	"testing"
 	"time"
+
+	"github.com/go-co-op/gocron/v2"
 )
 
 func TestRawScheduler(t *testing.T) {

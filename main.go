@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/kardianos/service"
 	"log"
 	"os"
+
+	"github.com/kardianos/service"
 )
 
 type program struct{}

@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/quant1x/x/ringbuffer"
 	"log"
 	"slices"
 	"sync"
 	"sync/atomic"
+
+	"github.com/quant1x/x/ringbuffer"
 )
 
 func main() {
