@@ -1,12 +1,12 @@
 module github.com/quant1x/x
 
-go 1.24.0
+go 1.25
 
 require (
 	github.com/go-co-op/gocron/v2 v2.16.3
 	github.com/kardianos/service v1.2.4
 	github.com/mmcloughlin/avo v0.6.0
-	github.com/petermattis/goid v0.0.0-20250721140440-ea1c0173183e
+	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe
 	golang.org/x/sys v0.35.0
 )
 
