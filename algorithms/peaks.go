@@ -6,34 +6,6 @@ import (
 	"sort"
 )
 
-// SearchMode 搜索模式
-type SearchMode int
-
-const (
-	FindInflection SearchMode = iota // 从左到右：找拐点
-	PreserveTrend                    // 从右到左：保终局
-)
-
-// SegmentSide 表示自由段的位置（用于 processSegment）
-type SegmentSide int
-
-const (
-	SideLeft SegmentSide = iota
-	SideRight
-)
-
-// PeaksResult 返回结果
-type PeaksResult struct {
-	Peaks     []int // 主趋势波峰（含所有主峰）
-	Breakouts []int // 异常突破点
-}
-
-// SideModes 允许为左侧和右侧自由段独立设置检测模式
-type SideModes struct {
-	Left  SearchMode // 第一个主峰/主谷左侧使用的模式
-	Right SearchMode // 最后一个主峰/主谷右侧使用的模式
-}
-
 // FindPeaksWithBreakouts 在 [start, end) 区间分析波峰
 // FindPeaksWithBreakouts 支持左右段独立模式
 func FindPeaksWithBreakouts(

@@ -1,350 +1,304 @@
 package algorithms
 
 import (
+	"fmt"
+	"math"
 	"slices"
+	"sort"
 )
-
-// find_extremes 查找波峰波谷
-func find_extremes(list []float64, start, end int) (extremes []int) {
-	length := len(list)
-	if length < 3 {
-		return nil
-	}
-	if length > end {
-		return nil
-	}
-	if start < 0 {
-		return nil
-	}
-
-	// 使用 int8 节省内存（diff 值仅为 -1,0,1）
-	diff := make([]int8, end) // n 个元素，最后一个为 0
-
-	// 1. 计算一阶符号差分（n-1 项），最后一项补 0
-	for i := start; i < end-1; i++ {
-		// 内联 compare
-		if list[i+1] > list[i] {
-			diff[i] = 1
-		} else if list[i+1] < list[i] {
-			diff[i] = -1
-		} // else 0（默认）
-
-	}
-	// 最后一个差分设为 0（无后续）
-	diff[end-1] = 0
-	diff[end-1] = 0
-
-	// 2. 处理平台（diff == 0 的点），合并 high 和 low 处理
-	for i := start; i < end-1; i++ {
-		// 处理 high
-		if diff[i] == 0 {
-			if i == start {
-				for j := start + 1; j < end-1; j++ {
-					if diff[j] != 0 {
-						diff[i] = diff[j]
-						break
-					}
-				}
-			} else if i == end-2 {
-				diff[i] = diff[i-1]
-			} else {
-				diff[i] = diff[i+1]
-			}
-		}
-	}
-
-	// 3. 检测波峰波谷：二阶差分
-	// 预分配空间（通常极值点不会超过 n/3）
-	extremes = make([]int, 0, end/3)
-	for i := start; i < end-1; i++ {
-		dHigh := int(diff[i+1]) - int(diff[i])
-
-		if dHigh == -2 {
-			extremes = append(extremes, i+1)
-		}
-	}
-
-	return extremes
-}
-
-// FindPeaksValleys 查找波峰波谷
-func FindPeaksValleys(highList, lowList []float64) (peaks, valleys []int) {
-	n := len(highList)
-	if n != len(lowList) || n < 3 {
-		return nil, nil
-	}
-
-	// 使用 int8 节省内存（diff 值仅为 -1,0,1）
-	diffHigh := make([]int8, n) // n 个元素，最后一个为 0
-	diffLow := make([]int8, n)
-
-	// 1. 计算一阶符号差分（n-1 项），最后一项补 0
-	for i := 0; i < n-1; i++ {
-		// 内联 compare
-		if highList[i+1] > highList[i] {
-			diffHigh[i] = 1
-		} else if highList[i+1] < highList[i] {
-			diffHigh[i] = -1
-		} // else 0（默认）
-
-		if lowList[i+1] > lowList[i] {
-			diffLow[i] = 1
-		} else if lowList[i+1] < lowList[i] {
-			diffLow[i] = -1
-		}
-	}
-	// 最后一个差分设为 0（无后续）
-	diffHigh[n-1] = 0
-	diffLow[n-1] = 0
-
-	// 2. 处理平台（diff == 0 的点），合并 high 和 low 处理
-	for i := 0; i < n-1; i++ {
-		// 处理 high
-		if diffHigh[i] == 0 {
-			if i == 0 {
-				for j := 1; j < n-1; j++ {
-					if diffHigh[j] != 0 {
-						diffHigh[i] = diffHigh[j]
-						break
-					}
-				}
-			} else if i == n-2 {
-				diffHigh[i] = diffHigh[i-1]
-			} else {
-				diffHigh[i] = diffHigh[i+1]
-			}
-		}
-
-		// 处理 low
-		if diffLow[i] == 0 {
-			if i == 0 {
-				for j := 1; j < n-1; j++ {
-					if diffLow[j] != 0 {
-						diffLow[i] = diffLow[j]
-						break
-					}
-				}
-			} else if i == n-2 {
-				diffLow[i] = diffLow[i-1]
-			} else {
-				diffLow[i] = diffLow[i+1]
-			}
-		}
-	}
-
-	// 3. 检测波峰波谷：二阶差分
-	// 预分配空间（通常极值点不会超过 n/3）
-	peaks = make([]int, 0, n/3)
-	valleys = make([]int, 0, n/3)
-
-	for i := 0; i < n-1; i++ {
-		dHigh := int(diffHigh[i+1]) - int(diffHigh[i])
-		dLow := int(diffLow[i+1]) - int(diffLow[i])
-
-		if dHigh == -2 {
-			peaks = append(peaks, i+1)
-		}
-		if dLow == 2 {
-			valleys = append(valleys, i+1)
-		}
-	}
-
-	return peaks, valleys
-}
-
-// ExtremePoint 数据极点, X轴为时间类切片的索引, Y轴为具体数值
-type ExtremePoint struct {
-	X      int     // Y切片的索引
-	Y      float64 // 值
-	IsPeak bool    // 是否波峰
-}
-
-type WaveDirection int
 
 const (
-	WaveLeft  WaveDirection = iota // 左边
-	WaveRight                      // 右边
+	floatEps = 1e-9
+	// 其他常量...
 )
 
-type ExtremeType uint8
+// ExtremeType 表示极值方向
+type ExtremeType int
 
 const (
-	ExtremeFlat   ExtremeType = 0         // 平台
-	ExtremePeak   ExtremeType = 1 << iota // 波峰
-	ExtremeValley                         // 波谷
-	ExtremeLatest                         // 最近
-	ExtremeGlobal                         // 全局
+	ExtremePeak   ExtremeType = iota // 波峰（局部最大值）
+	ExtremeTrough                    // 波谷（局部最小值）
 )
 
-func (e ExtremeType) Compare() func(a, b float64) bool {
-	// 定义比较函数：波峰用大于，波谷用小于
-	var compare func(a, b float64) bool
-	if (e & ExtremePeak) == ExtremePeak {
-		compare = func(a, b float64) bool { return a >= b }
-	} else if (e & ExtremeValley) == ExtremeValley {
-		compare = func(a, b float64) bool { return a <= b }
-	} else if e == ExtremeFlat {
-		compare = func(a, b float64) bool { return a == b }
-	} else {
-		panic("unknown ExtremeType")
+func (e ExtremeType) String() string {
+	switch e {
+	case ExtremePeak:
+		return "ExtremePeak"
+	case ExtremeTrough:
+		return "ExtremeTrough"
+	default:
+		return "Unknown"
 	}
-	return compare
 }
 
-func (e ExtremeType) IsPeak() bool {
-	return e&ExtremePeak == ExtremePeak
+// SegmentSide 表示自由段的位置（用于 processSegment）
+type SegmentSide int
+
+const (
+	SideLeft SegmentSide = iota
+	SideRight
+)
+
+// SearchMode 搜索模式
+type SearchMode int
+
+const (
+	FindInflection SearchMode = iota // 从左到右：找拐点
+	PreserveTrend                    // 从右到左：保终局
+)
+
+func (m SearchMode) String() string {
+	switch m {
+	case FindInflection:
+		return "FindInflection"
+	case PreserveTrend:
+		return "PreserveTrend"
+	default:
+		return "Unknown"
+	}
 }
 
-func (e ExtremeType) IsValley() bool {
-	return e&ExtremeValley == ExtremeValley
+// PeaksResult 返回结果
+type PeaksResult struct {
+	Peaks     []int // 主趋势波峰（含所有主峰）
+	Breakouts []int // 异常突破点
 }
 
-func (e ExtremeType) Has(other ExtremeType) bool {
-	return (e & other) == other
+func (r PeaksResult) String() string {
+	return fmt.Sprintf("Peaks: %v, Breakouts: %v", r.Peaks, r.Breakouts)
 }
 
-func (e ExtremeType) IsLatest() bool {
-	return (e & ExtremeLatest) == ExtremeLatest
+// SideModes 允许为左侧和右侧自由段独立设置检测模式
+type SideModes struct {
+	Left  SearchMode // 第一个主峰/主谷左侧使用的模式
+	Right SearchMode // 最后一个主峰/主谷右侧使用的模式
 }
 
-func (e ExtremeType) IsGlobal() bool {
-	return (e & ExtremeGlobal) == ExtremeGlobal
-}
-
-// find_monotonic_extremes 检测单调序列中的极值点（波峰或波谷）
-//
-//	支持从左到右或从右到左扫描，返回按原始顺序排列的索引
-func find_monotonic_extremes(data []ExtremePoint, direction WaveDirection, typ ExtremeType) []ExtremePoint {
-	// 空数据处理
-	if len(data) == 0 {
-		return []ExtremePoint{}
-	}
-	// 单点数据
-	if len(data) == 1 {
-		return data
-	}
-
-	var extremes []ExtremePoint
-	var startIdx, endIdx, step int
-
-	// 设置扫描方向
-	if direction == WaveLeft {
-		startIdx, endIdx, step = 0, len(data), 1
-	} else if direction == WaveRight {
-		startIdx, endIdx, step = len(data)-1, -1, -1
-	} else {
-		panic("direction must be 'left' or 'right'")
-	}
-
-	// 初始值
-	prevVal := data[startIdx]
-
-	compare := typ.Compare()
-
-	// 遍历数据
-	for currentIdx := startIdx + step; currentIdx != endIdx; currentIdx += step {
-		currentVal := data[currentIdx]
-
-		if compare(currentVal.Y, prevVal.Y) {
-			// 当前值更极值，更新
-			prevVal = currentVal
-		} else if len(extremes) > 0 && (prevVal.Y == extremes[len(extremes)-1].Y && prevVal.X == extremes[len(extremes)-1].X) {
-			// 跳过已记录的相同极值
-			continue
-		} else {
-			// 当前值不再增长/减少，记录之前的极值
-			extremes = append(extremes, prevVal)
-		}
-	}
-
-	// 处理最后一个极值段
-	if len(extremes) == 0 || (compare(prevVal.Y, extremes[len(extremes)-1].Y) && prevVal.X != extremes[len(extremes)-1].X) {
-		extremes = append(extremes, prevVal)
-	}
-
-	// 如果是右向扫描，反转结果以保持原始顺序
-	if direction == WaveRight {
-		// 反转切片
-		slices.Reverse(extremes)
-	}
-
-	return extremes
-}
-
-type PhasePoint struct {
-	X      int
-	Y      int
-	IsPeak bool
-}
-
-func detect_extremes(raw []float64, extremesType ExtremeType, offset ...int) (phases []PhasePoint, extremes []ExtremePoint) {
-	rawCount := len(raw)
-	//data := make([]ExtremePoint, dataCount)
-	// 确定高点的最大值
-	var extremum float64
-	if extremesType == ExtremePeak {
-		extremum = slices.Max(raw)
-	} else {
-		extremum = slices.Min(raw)
-	}
-	offsetStart := 0
-	offsetEnd := rawCount
-	if len(offset) > 0 {
-		offsetStart = offset[0]
-	}
-	if len(offset) > 1 {
-		offsetEnd = offset[1]
-	}
-	list := find_extremes(raw, offsetStart, offsetEnd)
-	extremeCount := len(list)
-	if extremeCount == 0 {
+func processExtremeSegment(
+	data []float64,
+	segStart, segEnd int,
+	extremes []int,
+	mode SearchMode,
+	results *[]int,
+	breakouts *[]int,
+	mainVal float64,
+	direction ExtremeType,
+	side SegmentSide,
+) {
+	// 增强边界检查：防止越界访问 data[idx]
+	if segStart < 0 || segEnd > len(data) || segStart >= segEnd {
 		return
 	}
 
-	isPeak := extremesType.IsPeak()
-
-	// 按照全局的最大值进行数据分段
-	for i := 0; i < extremeCount; i++ {
-		x := list[i]
-		data := PhasePoint{X: i, Y: x, IsPeak: isPeak}
-		if len(phases) == 0 || i+1 == offsetEnd || raw[x] == extremum {
-			phases = append(phases, data)
+	// 收集该段内非主极值的次级极值点
+	var segExtremes []int
+	for _, idx := range extremes {
+		if idx >= segStart && idx < segEnd && math.Abs(data[idx]-mainVal) >= floatEps {
+			segExtremes = append(segExtremes, idx)
 		}
 	}
-	var tempExtremes []ExtremePoint
-	compare := extremesType.Compare()
-	for i := 1; i < len(phases); i++ {
-		if phases[i-1].Y == phases[i].Y {
-			phase := phases[i-1]
-			tempExtremes = append(tempExtremes, ExtremePoint{X: phase.Y, Y: raw[phase.Y], IsPeak: phase.IsPeak})
+
+	if len(segExtremes) == 0 {
+		return
+	}
+
+	// 根据方向和模式决定遍历顺序与比较逻辑
+	var valid []int
+	var increasing bool // true: 允许非递减；false: 允许非递增
+	var reverseOrder bool
+
+	switch {
+	case mode == FindInflection && side == SideLeft && direction == ExtremePeak:
+		// 左侧波峰：从右向左，非递增（不能比前一波高）
+		reverseOrder = true
+		increasing = false
+	case mode == FindInflection && side == SideRight && direction == ExtremePeak:
+		// 右侧波峰：从左向右，非递增
+		reverseOrder = false
+		increasing = false
+	case mode == PreserveTrend && side == SideLeft && direction == ExtremePeak:
+		// 左侧波峰：从左向右，非递减（保持上升趋势）
+		reverseOrder = false
+		increasing = true
+	case mode == PreserveTrend && side == SideRight && direction == ExtremePeak:
+		// 右侧波峰：从右向左，非递减 → 反转后时间顺序仍正
+		reverseOrder = true
+		increasing = true
+
+	// 波谷逻辑（反转比较方向）
+	case mode == FindInflection && side == SideLeft && direction == ExtremeTrough:
+		// 左侧波谷：从右向左，非递减（不能比前一波低）=> 趋势抬高
+		reverseOrder = true
+		increasing = true
+	case mode == FindInflection && side == SideRight && direction == ExtremeTrough:
+		// 右侧波谷：从左向右，非递减
+		reverseOrder = false
+		increasing = true
+	case mode == PreserveTrend && side == SideLeft && direction == ExtremeTrough:
+		// 左侧波谷：从左向右，非递增（保持下降趋势）
+		reverseOrder = false
+		increasing = false
+	case mode == PreserveTrend && side == SideRight && direction == ExtremeTrough:
+		// 右侧波谷：从右向左，非递增
+		reverseOrder = true
+		increasing = false
+	}
+
+	// 准备遍历顺序
+	indices := segExtremes
+	if reverseOrder {
+		// 逆序遍历
+		for i := len(segExtremes) - 1; i >= 0; i-- {
+			checkAndAppend(data, segExtremes[i], &valid, breakouts, increasing)
+		}
+	} else {
+		// 正序遍历
+		for _, idx := range indices {
+			checkAndAppend(data, idx, &valid, breakouts, increasing)
+		}
+	}
+
+	// 如果是逆序处理，结果需要反转以恢复时间顺序
+	if reverseOrder {
+		slices.Reverse(valid)
+	}
+
+	*results = append(*results, valid...)
+}
+
+// checkAndAppend 判断当前点是否符合趋势（非递增/非递减）
+func checkAndAppend(
+	data []float64,
+	currIdx int,
+	valid *[]int,
+	breakouts *[]int,
+	shouldIncrease bool, // true: 非递减；false: 非递增
+) {
+	if len(*valid) == 0 {
+		*valid = append(*valid, currIdx)
+		return
+	}
+
+	lastVal := data[(*valid)[len(*valid)-1]]
+	currVal := data[currIdx]
+
+	if shouldIncrease {
+		// 要求非递减：curr >= last
+		if currVal >= lastVal {
+			*valid = append(*valid, currIdx)
 		} else {
-			start := phases[i-1].X
-			end := phases[i].X
-			var direction WaveDirection
-			if !compare(raw[phases[i-1].Y], raw[phases[i].Y]) {
-				direction = WaveLeft
-			} else {
-				direction = WaveRight
-			}
+			*breakouts = append(*breakouts, currIdx)
+		}
+	} else {
+		// 要求非递增：curr <= last
+		if currVal <= lastVal {
+			*valid = append(*valid, currIdx)
+		} else {
+			*breakouts = append(*breakouts, currIdx)
+		}
+	}
+}
 
-			if i+1 == len(phases) {
-				if end+1 == offsetEnd {
-					end += 1
-				}
-			}
-			var tmpList []ExtremePoint
-			for j := start; j < end; j++ {
-				x := list[j]
-				tmpList = append(tmpList, ExtremePoint{X: x, Y: raw[x], IsPeak: isPeak})
-			}
-			if len(tmpList) < 2 {
-				continue
-			}
-			subExtremes := find_monotonic_extremes(tmpList, direction, extremesType)
-			tempExtremes = append(tempExtremes, subExtremes...)
+// FindExtremesWithBreakouts 在 [start, end) 区间分析波峰或波谷
+func FindExtremesWithBreakouts(
+	data []float64,
+	start, end int,
+	modes SideModes,
+	direction ExtremeType,
+) PeaksResult {
+	result := PeaksResult{}
+
+	// 防护：nil、越界、长度不足
+	if data == nil || len(data) == 0 ||
+		start < 0 || end > len(data) || start >= end || len(data) < 3 {
+		return result
+	}
+
+	// 1. 找所有极值点（局部 extremum）
+	var extremes []int
+
+	// 左端点
+	if start+1 < end {
+		if (direction == ExtremePeak && data[start] > data[start+1]) ||
+			(direction == ExtremeTrough && data[start] < data[start+1]) {
+			extremes = append(extremes, start)
 		}
 	}
 
-	extremes = append(extremes, tempExtremes...)
-	return
+	// 内部点
+	for i := start + 1; i <= end-2; i++ {
+		isPeak := data[i-1] < data[i] && data[i] > data[i+1]
+		isTrough := data[i-1] > data[i] && data[i] < data[i+1]
+
+		if (direction == ExtremePeak && isPeak) || (direction == ExtremeTrough && isTrough) {
+			extremes = append(extremes, i)
+		}
+	}
+
+	if len(extremes) == 0 {
+		return result
+	}
+
+	// 2. 找主极值（全局最值）
+	var mainVal float64
+	if direction == ExtremePeak {
+		mainVal = data[extremes[0]]
+		for _, i := range extremes {
+			if data[i] > mainVal {
+				mainVal = data[i]
+			}
+		}
+	} else {
+		mainVal = data[extremes[0]]
+		for _, i := range extremes {
+			if data[i] < mainVal {
+				mainVal = data[i]
+			}
+		}
+	}
+
+	// 3. 收集所有主极值点（使用浮点容差）
+	var majorExtremes []int
+	for _, i := range extremes {
+		if math.Abs(data[i]-mainVal) < floatEps {
+			majorExtremes = append(majorExtremes, i)
+		}
+	}
+
+	// 安全兜底：主极值点为空（理论上不会，但防浮点误差或极端情况）
+	if len(majorExtremes) == 0 {
+		return result
+	}
+
+	sort.Ints(majorExtremes)
+	firstMajor := majorExtremes[0]
+	lastMajor := majorExtremes[len(majorExtremes)-1]
+
+	var results []int
+	var breakouts []int
+
+	// 4. 处理左侧自由段 [start, firstMajor)
+	processExtremeSegment(
+		data, start, firstMajor,
+		extremes, modes.Left,
+		&results, &breakouts,
+		mainVal, direction, SideLeft,
+	)
+
+	// 5. 处理右侧自由段 [lastMajor+1, end)
+	processExtremeSegment(
+		data, lastMajor+1, end,
+		extremes, modes.Right,
+		&results, &breakouts,
+		mainVal, direction, SideRight,
+	)
+
+	// 6. 加入主极值点
+	results = append(results, majorExtremes...)
+	sort.Ints(results)
+	sort.Ints(breakouts)
+
+	result.Peaks = results
+	result.Breakouts = breakouts
+	return result
 }

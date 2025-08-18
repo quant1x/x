@@ -2,8 +2,6 @@
 package algorithms
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -95,31 +93,31 @@ func TestWavesBasic(t *testing.T) {
 	printResult(t, "左侧: PreserveTrend | 右侧: PreserveTrend", valley4, lows)
 }
 
-// 辅助函数：将 float64 切片转为对齐字符串
-func floatSliceToString(f []float64) string {
-	s := make([]string, len(f))
-	for i, v := range f {
-		s[i] = fmt.Sprintf("%.f", v)
-	}
-	return fmt.Sprintf("%-4s", strings.Join(s, " "))
-}
-
-// 辅助函数：将 int 切片转为对齐字符串
-func intSliceToString(i []int) string {
-	s := make([]string, len(i))
-	for idx, v := range i {
-		s[idx] = fmt.Sprintf("%d", v)
-	}
-	return fmt.Sprintf("%-4s", strings.Join(s, " "))
-}
-
-// 辅助函数：根据索引取值
-func dataFromIndices(data []float64, indices []int) []float64 {
-	var res []float64
-	for _, i := range indices {
-		if i >= 0 && i < len(data) {
-			res = append(res, data[i])
-		}
-	}
-	return res
-}
+//// 辅助函数：将 float64 切片转为对齐字符串
+//func floatSliceToString(f []float64) string {
+//	s := make([]string, len(f))
+//	for i, v := range f {
+//		s[i] = fmt.Sprintf("%.f", v)
+//	}
+//	return fmt.Sprintf("%-4s", strings.Join(s, " "))
+//}
+//
+//// 辅助函数：将 int 切片转为对齐字符串
+//func intSliceToString(i []int) string {
+//	s := make([]string, len(i))
+//	for idx, v := range i {
+//		s[idx] = fmt.Sprintf("%d", v)
+//	}
+//	return fmt.Sprintf("%-4s", strings.Join(s, " "))
+//}
+//
+//// 辅助函数：根据索引取值
+//func dataFromIndices(data []float64, indices []int) []float64 {
+//	var res []float64
+//	for _, i := range indices {
+//		if i >= 0 && i < len(data) {
+//			res = append(res, data[i])
+//		}
+//	}
+//	return res
+//}
