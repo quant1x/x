@@ -2,6 +2,7 @@
 package algorithms
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -37,6 +38,12 @@ func TestWavesBasic(t *testing.T) {
 	if !equal(result2.Peaks, expected2) {
 		t.Errorf("PreserveTrend: 期望 %v, 实际 %v", expected2, result2.Peaks)
 	}
+
+	lows := []float64{0, 8, 0, 4, 2, 3, 1, 6, 3, 5, 1, 8, 3}
+	result21 := FindValleysWithBreakouts(lows, 0, len(lows), FindInflection)
+	fmt.Println(result21.Peaks)
+	result22 := FindValleysWithBreakouts(lows, 0, len(lows), PreserveTrend)
+	fmt.Println(result22.Peaks)
 }
 
 func dataFromIndices(data []float64, indices []int) []float64 {

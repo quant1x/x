@@ -190,3 +190,161 @@ func processSegment(
 		}
 	}
 }
+
+// FindValleysWithBreakouts 在 [start, end) 区间分析波谷
+func FindValleysWithBreakouts(
+	data []float64,
+	start, end int,
+	mode SearchMode,
+) PeaksResult {
+	result := PeaksResult{}
+
+	// 边界检查
+	if start < 0 || end > len(data) || start >= end || len(data) < 3 {
+		return result
+	}
+
+	// 1. 检测所有波谷（含左端点）
+	var lows []int
+
+	// 左端点
+	if start+1 < end && data[start] < data[start+1] {
+		lows = append(lows, start)
+	}
+
+	// 内部点：严格局部最小值
+	for i := start + 1; i <= end-2; i++ {
+		if data[i-1] > data[i] && data[i] < data[i+1] {
+			lows = append(lows, i)
+		}
+	}
+
+	if len(lows) == 0 {
+		return result
+	}
+
+	// 2. 找出全局最小值（波谷中的最低点）
+	minVal := data[lows[0]]
+	for _, i := range lows {
+		if data[i] < minVal {
+			minVal = data[i]
+		}
+	}
+
+	// 3. 收集所有主谷（值等于 minVal 的波谷）
+	var majorValleys []int
+	for _, i := range lows {
+		if data[i] == minVal {
+			majorValleys = append(majorValleys, i)
+		}
+	}
+	sort.Ints(majorValleys) // 从左到右排序
+
+	// ✅ 所有主谷必须进入 valleys
+	var valleys []int
+	var breakouts []int
+
+	// 4. 分段处理自由段：仅处理非主谷之间的区域
+	// 自由段1: [start, majorValleys[0]) —— 第一个主谷左侧
+	processValleySegment(data, start, majorValleys[0], lows, mode, &valleys, &breakouts, minVal, SideLeft)
+
+	// 自由段2: [lastMajor+1, end) —— 最后一个主谷右侧
+	lastMajor := majorValleys[len(majorValleys)-1]
+	processValleySegment(data, lastMajor+1, end, lows, mode, &valleys, &breakouts, minVal, SideRight)
+
+	// 5. 将所有主谷加入结果
+	valleys = append(valleys, majorValleys...)
+
+	// 6. 排序输出
+	sort.Ints(valleys)
+	sort.Ints(breakouts)
+
+	result.Peaks = valleys // 复用 PeaksResult，但实际是 valleys
+	result.Breakouts = breakouts
+	return result
+}
+
+func processValleySegment(
+	data []float64,
+	segStart, segEnd int,
+	lows []int,
+	mode SearchMode,
+	valleys *[]int,
+	breakouts *[]int,
+	minVal float64,
+	side SegmentSide,
+) {
+	if segStart >= segEnd {
+		return
+	}
+
+	// 收集该段内的次级波谷（非主谷）
+	var segLows []int
+	for _, idx := range lows {
+		if idx >= segStart && idx < segEnd && data[idx] != minVal {
+			segLows = append(segLows, idx)
+		}
+	}
+
+	if len(segLows) == 0 {
+		return
+	}
+
+	switch mode {
+	case FindInflection:
+		if side == SideLeft {
+			// 左侧：从主谷往左看，右→左，非递减（一波不比一波低）=> 趋势是“抬高”的反转
+			var valid []int
+			for i := len(segLows) - 1; i >= 0; i-- {
+				idx := segLows[i]
+				if len(valid) == 0 || data[idx] >= data[valid[len(valid)-1]] {
+					valid = append(valid, idx)
+				} else {
+					*breakouts = append(*breakouts, idx)
+				}
+			}
+			// 反转为时间顺序（从左到右）
+			slices.Reverse(valid)
+			*valleys = append(*valleys, valid...)
+		} else {
+			// 右侧：从主谷往右看，左→右，非递减（一波不比一波低）
+			var valid []int
+			for _, idx := range segLows {
+				if len(valid) == 0 || data[idx] >= data[valid[len(valid)-1]] {
+					valid = append(valid, idx)
+				} else {
+					*breakouts = append(*breakouts, idx)
+				}
+			}
+			*valleys = append(*valleys, valid...)
+		}
+
+	case PreserveTrend:
+		if side == SideLeft {
+			// 左侧：从高到低，左→右，非递增（一波不比一波高）=> 趋势是“下降”的
+			var valid []int
+			for _, idx := range segLows {
+				if len(valid) == 0 || data[idx] <= data[valid[len(valid)-1]] {
+					valid = append(valid, idx)
+				} else {
+					*breakouts = append(*breakouts, idx)
+				}
+			}
+			*valleys = append(*valleys, valid...)
+		} else {
+			// 右侧：从高到低，右→左，非递增（一波不比一波高）
+			var valid []int
+			for i := len(segLows) - 1; i >= 0; i-- {
+				idx := segLows[i]
+				if len(valid) == 0 || data[idx] <= data[valid[len(valid)-1]] {
+					valid = append(valid, idx)
+				} else {
+					*breakouts = append(*breakouts, idx)
+				}
+			}
+			// 反转为时间顺序
+			slices.Reverse(valid)
+			*valleys = append(*valleys, valid...)
+		}
+	}
+}
