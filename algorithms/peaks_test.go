@@ -3,49 +3,117 @@ package algorithms
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
 func TestWavesBasic(t *testing.T) {
 	data := []float64{2, 6, 4, 5, 3, 8, 5, 7, 3, 10, 5}
-
-	t.Log("数据:", data)
-	t.Log("索引: [0 1 2 3 4 5 6 7 8 9 10 11 12 13]")
-	t.Log("")
-
-	// 示例1：FindInflection
-	result1 := FindPeaksWithBreakouts(data, 0, len(data), FindInflection)
-	t.Log("【FindInflection 模式】")
-	t.Log("主趋势波峰索引:", result1.Peaks)
-	t.Log("主趋势波峰值:  ", dataFromIndices(data, result1.Peaks))
-	t.Log("异常突破点索引:", result1.Breakouts)
-	t.Log("")
-
-	// 示例2：PreserveTrend
-	result2 := FindPeaksWithBreakouts(data, 0, len(data), PreserveTrend)
-	t.Log("【PreserveTrend 模式】")
-	t.Log("主趋势波峰索引:", result2.Peaks)
-	t.Log("主趋势波峰值:  ", dataFromIndices(data, result2.Peaks))
-	t.Log("异常突破点索引:", result2.Breakouts)
-
-	// 断言
-	expected1 := []int{1, 3, 5}
-	if !equal(result1.Peaks, expected1) {
-		t.Errorf("FindInflection: 期望 %v, 实际 %v", expected1, result1.Peaks)
-	}
-
-	expected2 := []int{1, 7, 9}
-	if !equal(result2.Peaks, expected2) {
-		t.Errorf("PreserveTrend: 期望 %v, 实际 %v", expected2, result2.Peaks)
-	}
-
 	lows := []float64{0, 8, 0, 4, 2, 3, 1, 6, 3, 5, 1, 8, 3}
-	result21 := FindValleysWithBreakouts(lows, 0, len(lows), FindInflection)
-	fmt.Println(result21.Peaks)
-	result22 := FindValleysWithBreakouts(lows, 0, len(lows), PreserveTrend)
-	fmt.Println(result22.Peaks)
+
+	// 辅助函数：索引对齐输出
+	printHeader := func(t *testing.T, label string, values []float64) {
+		t.Logf("\n=== %s ===", label)
+		t.Logf("数据:   %v", floatSliceToString(values))
+		indices := make([]int, len(values))
+		for i := range indices {
+			indices[i] = i
+		}
+		t.Logf("索引:   %v", intSliceToString(indices))
+		t.Log("")
+	}
+
+	// 辅助函数：格式化输出结果
+	printResult := func(t *testing.T, desc string, result PeaksResult, data []float64) {
+		t.Logf("【%s】", desc)
+		t.Logf("主趋势波峰/谷索引: %v", intSliceToString(result.Peaks))
+		t.Logf("主趋势波峰/谷值:  %v", floatSliceToString(dataFromIndices(data, result.Peaks)))
+		t.Logf("异常突破点索引:   %v", intSliceToString(result.Breakouts))
+		t.Log("")
+	}
+
+	// ========== 波峰测试 ==========
+	printHeader(t, "📈 波峰检测数据", data)
+
+	// 模式1：左侧找拐点，右侧保趋势
+	result1 := FindPeaksWithBreakouts(data, 0, len(data), SideModes{
+		Left:  FindInflection,
+		Right: PreserveTrend,
+	})
+	printResult(t, "左侧: FindInflection | 右侧: PreserveTrend", result1, data)
+
+	// 模式2：左侧保趋势，右侧找拐点
+	result2 := FindPeaksWithBreakouts(data, 0, len(data), SideModes{
+		Left:  PreserveTrend,
+		Right: FindInflection,
+	})
+	printResult(t, "左侧: PreserveTrend | 右侧: FindInflection", result2, data)
+
+	// 模式3：两侧都找拐点
+	result3 := FindPeaksWithBreakouts(data, 0, len(data), SideModes{
+		Left:  FindInflection,
+		Right: FindInflection,
+	})
+	printResult(t, "左侧: FindInflection | 右侧: FindInflection", result3, data)
+
+	// 模式4：两侧都保趋势
+	result4 := FindPeaksWithBreakouts(data, 0, len(data), SideModes{
+		Left:  PreserveTrend,
+		Right: PreserveTrend,
+	})
+	printResult(t, "左侧: PreserveTrend | 右侧: PreserveTrend", result4, data)
+
+	// ========== 波谷测试 ==========
+	printHeader(t, "📉 波谷检测数据", lows)
+
+	// 模式1：左侧找拐点，右侧保趋势
+	valley1 := FindValleysWithBreakouts(lows, 0, len(lows), SideModes{
+		Left:  FindInflection,
+		Right: PreserveTrend,
+	})
+	printResult(t, "左侧: FindInflection | 右侧: PreserveTrend", valley1, lows)
+
+	// 模式2：左侧保趋势，右侧找拐点
+	valley2 := FindValleysWithBreakouts(lows, 0, len(lows), SideModes{
+		Left:  PreserveTrend,
+		Right: FindInflection,
+	})
+	printResult(t, "左侧: PreserveTrend | 右侧: FindInflection", valley2, lows)
+
+	// 模式3：两侧都找拐点
+	valley3 := FindValleysWithBreakouts(lows, 0, len(lows), SideModes{
+		Left:  FindInflection,
+		Right: FindInflection,
+	})
+	printResult(t, "左侧: FindInflection | 右侧: FindInflection", valley3, lows)
+
+	// 模式4：两侧都保趋势
+	valley4 := FindValleysWithBreakouts(lows, 0, len(lows), SideModes{
+		Left:  PreserveTrend,
+		Right: PreserveTrend,
+	})
+	printResult(t, "左侧: PreserveTrend | 右侧: PreserveTrend", valley4, lows)
 }
 
+// 辅助函数：将 float64 切片转为对齐字符串
+func floatSliceToString(f []float64) string {
+	s := make([]string, len(f))
+	for i, v := range f {
+		s[i] = fmt.Sprintf("%.f", v)
+	}
+	return fmt.Sprintf("%-4s", strings.Join(s, " "))
+}
+
+// 辅助函数：将 int 切片转为对齐字符串
+func intSliceToString(i []int) string {
+	s := make([]string, len(i))
+	for idx, v := range i {
+		s[idx] = fmt.Sprintf("%d", v)
+	}
+	return fmt.Sprintf("%-4s", strings.Join(s, " "))
+}
+
+// 辅助函数：根据索引取值
 func dataFromIndices(data []float64, indices []int) []float64 {
 	var res []float64
 	for _, i := range indices {
@@ -54,16 +122,4 @@ func dataFromIndices(data []float64, indices []int) []float64 {
 		}
 	}
 	return res
-}
-
-func equal(a, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
 }

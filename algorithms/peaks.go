@@ -28,40 +28,40 @@ type PeaksResult struct {
 	Breakouts []int // 异常突破点
 }
 
+// SideModes 允许为左侧和右侧自由段独立设置检测模式
+type SideModes struct {
+	Left  SearchMode // 第一个主峰/主谷左侧使用的模式
+	Right SearchMode // 最后一个主峰/主谷右侧使用的模式
+}
+
 // FindPeaksWithBreakouts 在 [start, end) 区间分析波峰
+// FindPeaksWithBreakouts 支持左右段独立模式
 func FindPeaksWithBreakouts(
 	data []float64,
 	start, end int,
-	mode SearchMode,
+	modes SideModes,
 ) PeaksResult {
 	result := PeaksResult{}
 
-	// 边界检查
 	if start < 0 || end > len(data) || start >= end || len(data) < 3 {
 		return result
 	}
 
-	// 1. 检测所有波峰（含左端点）
+	// 1. 找波峰
 	var highs []int
-
-	// 左端点
 	if start+1 < end && data[start] > data[start+1] {
 		highs = append(highs, start)
 	}
-
-	// 内部点
 	for i := start + 1; i <= end-2; i++ {
 		if data[i-1] < data[i] && data[i] > data[i+1] {
 			highs = append(highs, i)
 		}
 	}
-
 	if len(highs) == 0 {
-		// 无波峰，返回
 		return result
 	}
 
-	// 2. 找出全局最大值
+	// 2. 找主峰（最大值）
 	maxVal := data[highs[0]]
 	for _, i := range highs {
 		if data[i] > maxVal {
@@ -69,31 +69,48 @@ func FindPeaksWithBreakouts(
 		}
 	}
 
-	// 3. 收集所有主峰（值等于 maxVal 的波峰）
 	var majorPeaks []int
 	for _, i := range highs {
 		if data[i] == maxVal {
 			majorPeaks = append(majorPeaks, i)
 		}
 	}
-	sort.Ints(majorPeaks) // 从左到右
+	sort.Ints(majorPeaks)
 
-	// ✅ 所有主峰必须进入 peaks
+	firstMajor := majorPeaks[0]
+	lastMajor := majorPeaks[len(majorPeaks)-1]
+
 	var peaks []int
 	var breakouts []int
 
-	// 4. 分段处理：只处理非主峰之间的“自由段”
-	// 自由段1: [start, majorPeaks[0]) —— 第一个主峰左侧
-	processSegment(data, start, majorPeaks[0], highs, mode, &peaks, &breakouts, maxVal, SideLeft)
+	// ✅ 左侧段：使用用户指定的 modes.Left
+	processSegment(
+		data,
+		start,
+		firstMajor,
+		highs,
+		modes.Left, // ← 用户自由设置的模式
+		&peaks,
+		&breakouts,
+		maxVal,
+		SideLeft,
+	)
 
-	// 自由段2: [lastMajor+1, end) —— 最后一个主峰右侧
-	lastMajor := majorPeaks[len(majorPeaks)-1]
-	processSegment(data, lastMajor+1, end, highs, mode, &peaks, &breakouts, maxVal, SideRight)
+	// ✅ 右侧段：使用用户指定的 modes.Right
+	processSegment(
+		data,
+		lastMajor+1,
+		end,
+		highs,
+		modes.Right, // ← 用户自由设置的模式
+		&peaks,
+		&breakouts,
+		maxVal,
+		SideRight,
+	)
 
-	// 5. 将所有主峰加入 peaks
+	// 加入主峰
 	peaks = append(peaks, majorPeaks...)
-
-	// 6. 排序输出
 	sort.Ints(peaks)
 	sort.Ints(breakouts)
 
@@ -195,7 +212,7 @@ func processSegment(
 func FindValleysWithBreakouts(
 	data []float64,
 	start, end int,
-	mode SearchMode,
+	modes SideModes,
 ) PeaksResult {
 	result := PeaksResult{}
 
@@ -246,11 +263,11 @@ func FindValleysWithBreakouts(
 
 	// 4. 分段处理自由段：仅处理非主谷之间的区域
 	// 自由段1: [start, majorValleys[0]) —— 第一个主谷左侧
-	processValleySegment(data, start, majorValleys[0], lows, mode, &valleys, &breakouts, minVal, SideLeft)
+	processValleySegment(data, start, majorValleys[0], lows, modes.Left, &valleys, &breakouts, minVal, SideLeft)
 
 	// 自由段2: [lastMajor+1, end) —— 最后一个主谷右侧
 	lastMajor := majorValleys[len(majorValleys)-1]
-	processValleySegment(data, lastMajor+1, end, lows, mode, &valleys, &breakouts, minVal, SideRight)
+	processValleySegment(data, lastMajor+1, end, lows, modes.Right, &valleys, &breakouts, minVal, SideRight)
 
 	// 5. 将所有主谷加入结果
 	valleys = append(valleys, majorValleys...)
