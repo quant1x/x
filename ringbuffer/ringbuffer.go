@@ -10,6 +10,7 @@ import (
 var (
 	ErrQueueFull   = errors.New("queue is full")
 	ErrInvalidSize = errors.New("size must be power of two")
+	ErrClosed      = errors.New("ring buffer closed")
 )
 
 // Slot represents a single slot in the ring buffer
@@ -47,19 +48,37 @@ func New[T any](size uint32) (*RingBuffer[T], error) {
 	return rb, nil
 }
 
-// Write writes data into the ring buffer by a producer
+// spinWait 自旋等待，使用指数退避
+func spinWait(retries *int32) {
+	r := atomic.AddInt32(retries, 1)
+	switch {
+	case r < 4:
+		for i := 0; i < 1<<(r*2); i++ {
+		}
+	case r < 8:
+		runtime.Gosched()
+	default:
+		runtime.Gosched()
+	}
+}
+
+// Write writes data into the ring buffer by a producer.
+//
+// It explicitly boxes the value on the heap to ensure the pointer remains valid,
+// avoiding reliance on compiler escape analysis for safety.
 func (rb *RingBuffer[T]) Write(value T) error {
 	if atomic.LoadUint32(&rb.closed) == 1 {
 		return errors.New("queue closed")
 	}
 
 	var currentProd, minCons uint32
+	var retries int32 = 0 // ✅ 引入重试计数
 	for {
 		currentProd = atomic.LoadUint32(&rb.producerPos)
 		minCons = atomic.LoadUint32(&rb.consumerPos)
 
 		if currentProd-minCons >= rb.size {
-			runtime.Gosched() // 让出时间片
+			spinWait(&retries)
 			continue
 		}
 
@@ -68,18 +87,20 @@ func (rb *RingBuffer[T]) Write(value T) error {
 
 		// 尝试获取写权限
 		if atomic.LoadUint32(&slot.flag) != 0 {
-			runtime.Gosched()
+			spinWait(&retries)
 			continue
 		}
 
 		// CAS更新槽位状态为writing
 		if !atomic.CompareAndSwapUint32(&slot.flag, 0, 1) {
-			runtime.Gosched()
+			spinWait(&retries)
 			continue
 		}
 
-		// 写入数据并设置为readable状态
-		atomic.StorePointer(&slot.data, unsafe.Pointer(&value))
+		// 写入数据：显式堆分配，不再依赖逃逸分析
+		boxed := new(T)
+		*boxed = value
+		atomic.StorePointer(&slot.data, unsafe.Pointer(boxed))
 		atomic.StoreUint32(&slot.flag, 2)
 
 		// 更新全局生产者位置
@@ -89,26 +110,26 @@ func (rb *RingBuffer[T]) Write(value T) error {
 
 		// 如果更新失败，回滚槽位状态
 		atomic.StoreUint32(&slot.flag, 0)
-		runtime.Gosched()
+		spinWait(&retries)
 	}
 }
 
 // Read reads data from the ring buffer by a consumer
 func (rb *RingBuffer[T]) Read() (T, error) {
 	var zero T
-
+	var retries int32 = 0 // ✅ 引入重试计数
 	for {
 		currentCons := atomic.LoadUint32(&rb.consumerPos)
 		currentProd := atomic.LoadUint32(&rb.producerPos)
 
 		// 检查队列是否关闭且没有更多数据
 		if atomic.LoadUint32(&rb.closed) == 1 && currentCons >= currentProd {
-			return zero, errors.New("queue closed")
+			return zero, ErrClosed
 		}
 
 		if currentCons >= currentProd {
 			// 队列为空时让出 CPU 时间片
-			runtime.Gosched()
+			spinWait(&retries)
 			continue
 		}
 
@@ -117,13 +138,13 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 
 		// 检查槽位是否可读
 		if atomic.LoadUint32(&slot.flag) != 2 {
-			runtime.Gosched()
+			spinWait(&retries)
 			continue
 		}
 
 		// CAS更新槽位状态为empty
 		if !atomic.CompareAndSwapUint32(&slot.flag, 2, 0) {
-			runtime.Gosched()
+			spinWait(&retries)
 			continue
 		}
 
@@ -131,7 +152,7 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 		valPtr := atomic.LoadPointer(&slot.data)
 		if valPtr == nil {
 			atomic.StoreUint32(&slot.flag, 2) // 回滚槽位状态
-			runtime.Gosched()
+			spinWait(&retries)
 			continue
 		}
 
@@ -141,7 +162,7 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 
 		// 如果更新失败，回滚槽位状态
 		atomic.StoreUint32(&slot.flag, 2)
-		runtime.Gosched()
+		spinWait(&retries)
 	}
 }
 

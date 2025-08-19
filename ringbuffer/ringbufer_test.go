@@ -1,7 +1,6 @@
 package ringbuffer
 
 import (
-	"reflect"
 	"runtime"
 	"sort"
 	"sync"
@@ -9,74 +8,81 @@ import (
 )
 
 func TestMPMCRingBuffer(t *testing.T) {
+	t.Parallel()
+
 	const size = 1024
 	rb, _ := New[int](size)
 
-	numProducers := 2
-	numConsumers := 2
-	dataPerProducer := 5000
+	numProducers := 4
+	numConsumers := 4
+	dataPerProducer := 10000
 	totalData := numProducers * dataPerProducer
 
-	var wg sync.WaitGroup
-	wg.Add(numProducers + numConsumers)
+	var producerWg sync.WaitGroup
+	var consumerWg sync.WaitGroup
 
-	collected := make(chan int, totalData) // 用于收集消费者读取的数据
+	collected := make(chan int, totalData)
 
-	// 生产者协程
+	// 生产者
+	producerWg.Add(numProducers)
 	for i := 0; i < numProducers; i++ {
 		go func(id int) {
-			defer wg.Done()
+			defer producerWg.Done()
 			for j := 0; j < dataPerProducer; j++ {
 				value := id*dataPerProducer + j
 				for {
-					err := rb.Write(value)
-					if err == nil {
+					if err := rb.Write(value); err == nil {
 						break
 					}
-					if err == ErrQueueFull {
-						runtime.Gosched()
-						continue
-					}
-					t.Fatalf("unexpected error during write: %v", err)
+					runtime.Gosched()
 				}
 			}
 		}(i)
 	}
 
-	// 消费者协程
+	// 消费者
+	consumerWg.Add(numConsumers)
 	for i := 0; i < numConsumers; i++ {
 		go func() {
-			defer wg.Done()
+			defer consumerWg.Done()
 			for {
 				v, err := rb.Read()
 				if err != nil {
-					break
+					break // 包括 ErrClosed
 				}
 				collected <- v
 			}
 		}()
 	}
 
-	// 等待所有生产者完成写入
+	// 关闭：生产者完成 -> Close
 	go func() {
-		wg.Wait() // 等待所有生产者和消费者完成
+		producerWg.Wait()
 		rb.Close()
 	}()
 
-	// 收集所有消费者读取的数据
+	// 收集完成
+	go func() {
+		consumerWg.Wait()
+		close(collected)
+	}()
+
+	// 收集结果
 	result := make([]int, 0, totalData)
 	for v := range collected {
 		result = append(result, v)
 	}
 
-	// 验证数据完整性
-	sort.Ints(result)
-	expected := make([]int, totalData)
-	for i := 0; i < totalData; i++ {
-		expected[i] = i
+	// 验证数量
+	if len(result) != totalData {
+		t.Fatalf("expected %d items, got %d", totalData, len(result))
 	}
 
-	if !reflect.DeepEqual(result, expected) {
-		t.Fatalf("data mismatch:\ncollected: %v\nexpected: %v", result, expected)
+	// 验证内容（排序后）
+	sort.Ints(result)
+	for i := 0; i < totalData; i++ {
+		if result[i] != i {
+			t.Fatalf("result[%d] = %d, want %d", i, result[i], i)
+		}
 	}
 }
