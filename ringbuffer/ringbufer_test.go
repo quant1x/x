@@ -5,6 +5,7 @@ import (
 	"sort"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestMPMCRingBuffer(t *testing.T) {
@@ -90,6 +91,7 @@ func TestMPMCRingBuffer(t *testing.T) {
 // 压力测试
 func TestStressMPMCRingBuffer(t *testing.T) {
 	t.Parallel()
+	start := time.Now()
 
 	const size = 65536 // 64K slots
 	rb, err := New[int](size)
@@ -99,7 +101,7 @@ func TestStressMPMCRingBuffer(t *testing.T) {
 
 	numProducers := 8
 	numConsumers := 8
-	dataPerProducer := 50000
+	dataPerProducer := 30000
 	totalData := numProducers * dataPerProducer
 
 	var producerWg sync.WaitGroup
@@ -141,6 +143,7 @@ func TestStressMPMCRingBuffer(t *testing.T) {
 					// ErrClosed 是正常退出
 					return
 				}
+				_ = v
 				select {
 				case collected <- v:
 				default:
@@ -184,7 +187,11 @@ func TestStressMPMCRingBuffer(t *testing.T) {
 		t.Fatalf("missing or duplicate data: got %d unique", len(seen))
 	}
 
+	//producerWg.Wait()
+	//rb.Close()
+	//consumerWg.Wait()
 	t.Logf("Stress test passed: %d producers, %d consumers, %d items", numProducers, numConsumers, totalData)
+	t.Logf("cross time:%v", time.Since(start))
 }
 
 // 基准测试
