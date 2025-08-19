@@ -3,9 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-08-19
+### Changed
+- 新增embed工具
+- 新增默认的字体
+
 ## [0.1.2] - 2025-08-19
 ### Changed
 - 优化RingBuffer逃逸分析
+- update changelog
 
 ## [0.1.1] - 2025-08-19
 ### Changed
@@ -223,7 +229,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.2...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.3...HEAD
+[0.1.3]: https://gitee.com/quant1x/x-go.git/compare/v0.1.2...v0.1.3
 [0.1.2]: https://gitee.com/quant1x/x-go.git/compare/v0.1.1...v0.1.2
 [0.1.1]: https://gitee.com/quant1x/x-go.git/compare/v0.1.0...v0.1.1
 [0.1.0]: https://gitee.com/quant1x/x-go.git/compare/v0.0.21...v0.1.0
