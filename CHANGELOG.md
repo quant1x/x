@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-08-19
+### Changed
+- 优化RingBuffer逃逸分析
+
 ## [0.1.1] - 2025-08-19
 ### Changed
 - 新增基础极值检测函数
@@ -16,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - 新增信号绘图
 - 删除废弃的波浪检测方法
 - 明确防止重叠作业
+- update changelog
 
 ## [0.1.0] - 2025-08-14
 ### Changed
@@ -218,7 +223,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.1...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.2...HEAD
+[0.1.2]: https://gitee.com/quant1x/x-go.git/compare/v0.1.1...v0.1.2
 [0.1.1]: https://gitee.com/quant1x/x-go.git/compare/v0.1.0...v0.1.1
 [0.1.0]: https://gitee.com/quant1x/x-go.git/compare/v0.0.21...v0.1.0
 [0.0.21]: https://gitee.com/quant1x/x-go.git/compare/v0.0.20...v0.0.21
