@@ -44,7 +44,8 @@ func AddJob(spec string, cmd func()) error {
 	jd := gocron.CronJob(spec, true)
 	task := gocron.NewTask(cmd)
 	// 添加一个job到全局调度器
-	job, err := global_scheduler_cron.NewJob(jd, task)
+	// 如果作业已在运行，则 WithSingletonMode 可防止作业再次运行。 这对于不应重叠的作业很有用，并且偶尔 （但不一致）运行时间长于作业运行之间的间隔。
+	job, err := global_scheduler_cron.NewJob(jd, task, gocron.WithSingletonMode(gocron.LimitModeReschedule))
 	if err != nil {
 		return err
 	}
