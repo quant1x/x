@@ -3,9 +3,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.1] - 2025-08-19
+### Changed
+- 新增基础极值检测函数
+- 新增从右侧波峰单调递减的检测功能
+- 新增新版本的波峰检测, 支持力竭和全局两种模式
+- 新增波谷极值的检测方法, 与波峰对称
+- 可定制左右两侧的极值检测方式
+- 优化部分代码
+- 优化部分代码
+- 新增波浪检测文档
+- 新增信号绘图
+- 删除废弃的波浪检测方法
+- 明确防止重叠作业
+
 ## [0.1.0] - 2025-08-14
 ### Changed
 - go版本要求最低1.25
+- update changelog
 
 ## [0.0.21] - 2025-08-11
 ### Changed
@@ -203,7 +218,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.0...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.1...HEAD
+[0.1.1]: https://gitee.com/quant1x/x-go.git/compare/v0.1.0...v0.1.1
 [0.1.0]: https://gitee.com/quant1x/x-go.git/compare/v0.0.21...v0.1.0
 [0.0.21]: https://gitee.com/quant1x/x-go.git/compare/v0.0.20...v0.0.21
 [0.0.20]: https://gitee.com/quant1x/x-go.git/compare/v0.0.19...v0.0.20
