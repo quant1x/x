@@ -3,7 +3,7 @@ module github.com/quant1x/x
 go 1.25
 
 require (
-	github.com/go-co-op/gocron/v2 v2.16.3
+	github.com/go-co-op/gocron/v2 v2.16.4
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/kardianos/service v1.2.4
 	github.com/mmcloughlin/avo v0.6.0
