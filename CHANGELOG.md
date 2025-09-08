@@ -3,10 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.6] - 2025-09-08
+### Changed
+- 新增部分私有的工具包
+
 ## [0.1.5] - 2025-09-08
 ### Changed
 - 更新gocron版本到2.16.4
 - 调整评分计算器名
+- update changelog
 
 ## [0.1.4] - 2025-08-19
 ### Changed
@@ -241,7 +246,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.5...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.6...HEAD
+[0.1.6]: https://gitee.com/quant1x/x-go.git/compare/v0.1.5...v0.1.6
 [0.1.5]: https://gitee.com/quant1x/x-go.git/compare/v0.1.4...v0.1.5
 [0.1.4]: https://gitee.com/quant1x/x-go.git/compare/v0.1.3...v0.1.4
 [0.1.3]: https://gitee.com/quant1x/x-go.git/compare/v0.1.2...v0.1.3
