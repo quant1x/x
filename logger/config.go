@@ -77,7 +77,7 @@ func init() {
 	//zapLogger := NewTextLoggerWithCompression(cfg)
 	//logger = zapLogger.Sugar()
 	InitLogger(tempPath, defaultLevel)
-	chSignal := signal.Notify()
+	chSignal := signal.NotifyForShutdown()
 	go waitForStop(chSignal)
 }
 
