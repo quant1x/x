@@ -2,172 +2,106 @@ package scoring
 
 import (
 	"errors"
-	"fmt"
-	"sync"
 )
 
-// DataProcessor 数据处理器接口
-type DataProcessor interface {
-	Process(interface{}) (float64, error)
+// ScoreComponent 评分项结构体
+type ScoreComponent struct {
+	Name         string  // 维度名称
+	CustomWeight float64 // 自定义权重（仅当IsAutoWeight=false时有效）
+	Score        float64 // 得分（0-100）
+	IsAutoWeight bool    // 是否自动分配权重
 }
 
-// ScoreComponent 评分组件接口
-type ScoreComponent interface {
-	Name() string
-	Weight() float64
-	Score() (float64, error)
-	SetSystem(*ScoringSystem)
-	IsAutoWeight() bool
+// ScoreCalculator 评分系统
+type ScoreCalculator struct {
+	components      []ScoreComponent
+	computedWeights map[string]float64 // 存储计算后的实际权重
 }
 
-// BaseComponent 基础评分组件
-type BaseComponent struct {
-	name         string
-	customWeight float64
-	autoWeight   bool
-	processor    DataProcessor
-	rawData      interface{}
-	system       *ScoringSystem
-}
-
-func (b *BaseComponent) Name() string {
-	return b.name
-}
-
-func (b *BaseComponent) Weight() float64 {
-	if b.IsAutoWeight() {
-		return b.system.getAutoWeight()
+// NewScoreCalculator 创建评分系统实例
+func NewScoreCalculator() *ScoreCalculator {
+	return &ScoreCalculator{
+		components:      make([]ScoreComponent, 0),
+		computedWeights: make(map[string]float64),
 	}
-	return b.customWeight
 }
 
-func (b *BaseComponent) Score() (float64, error) {
-	if b.processor == nil {
-		return 0, errors.New("processor not defined")
+// AddComponent 添加评分组件（可选自定义权重）
+func (s *ScoreCalculator) AddComponent(name string, score float64, customWeight ...float64) error {
+	if score < 0 || score > 100 {
+		return errors.New("score must be between 0 and 100")
 	}
-	return b.processor.Process(b.rawData)
-}
 
-func (b *BaseComponent) SetSystem(s *ScoringSystem) {
-	b.system = s
-}
+	c := ScoreComponent{
+		Name:         name,
+		Score:        score,
+		IsAutoWeight: true,
+	}
 
-func (b *BaseComponent) IsAutoWeight() bool {
-	return b.autoWeight
-}
-
-// ScoringSystem 评分系统
-type ScoringSystem struct {
-	Components []ScoreComponent
-	lock       sync.RWMutex
-}
-
-var instance *ScoringSystem
-var once sync.Once
-
-func GetScoringSystem() *ScoringSystem {
-	once.Do(func() {
-		instance = &ScoringSystem{
-			Components: make([]ScoreComponent, 0),
+	// 处理可选自定义权重
+	if len(customWeight) > 0 {
+		if len(customWeight) > 1 {
+			return errors.New("too many weight parameters")
 		}
-	})
-	return instance
+		if customWeight[0] < 0 {
+			return errors.New("weight cannot be negative")
+		}
+		c.CustomWeight = customWeight[0]
+		c.IsAutoWeight = false
+	}
+
+	s.components = append(s.components, c)
+	return nil
 }
 
-func (s *ScoringSystem) getAutoWeight() float64 {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+// CalculateWeightedScore 计算加权总分
+func (s *ScoreCalculator) CalculateWeightedScore() (float64, error) {
+	s.computedWeights = make(map[string]float64)
 
-	totalCustom := 0.0
+	// 计算自定义权重总和和自动分配项数量
+	totalCustomWeight := 0.0
 	autoCount := 0
-
-	for _, c := range s.Components {
-		if !c.IsAutoWeight() {
-			totalCustom += c.Weight()
+	for _, c := range s.components {
+		if !c.IsAutoWeight {
+			totalCustomWeight += c.CustomWeight
 		} else {
 			autoCount++
 		}
 	}
 
-	if totalCustom > 1 {
-		return 0
+	// 权重校验
+	if totalCustomWeight > 1 {
+		return 0, errors.New("total custom weight exceeds 1")
+	}
+	remainingWeight := 1 - totalCustomWeight
+	if remainingWeight < 0 {
+		return 0, errors.New("invalid weight distribution")
 	}
 
-	remaining := 1 - totalCustom
-	if autoCount == 0 {
-		return 0
+	// 计算自动分配项的权重
+	autoWeight := 0.0
+	if autoCount > 0 {
+		autoWeight = remainingWeight / float64(autoCount)
 	}
-	return remaining / float64(autoCount)
-}
 
-func (s *ScoringSystem) Register(c ScoreComponent) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	for _, existing := range s.Components {
-		if existing.Name() == c.Name() {
-			return fmt.Errorf("component %s already exists", c.Name())
+	// 计算加权总分并记录实际权重
+	totalScore := 0.0
+	for _, c := range s.components {
+		actualWeight := 0.0
+		if !c.IsAutoWeight {
+			actualWeight = c.CustomWeight
+		} else {
+			actualWeight = autoWeight
 		}
+
+		s.computedWeights[c.Name] = actualWeight
+		totalScore += actualWeight * c.Score
 	}
 
-	c.SetSystem(s)
-	s.Components = append(s.Components, c)
-	return nil
+	return totalScore, nil
 }
 
-func (s *ScoringSystem) CalculateTotalScore() (float64, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-
-	if len(s.Components) == 0 {
-		return 0, errors.New("no components registered")
-	}
-
-	total := 0.0
-	for _, c := range s.Components {
-		weight := c.Weight()
-		score, err := c.Score()
-		if err != nil {
-			return 0, err
-		}
-		total += weight * score
-	}
-
-	if total > 100 {
-		return 100, nil
-	}
-	return total, nil
-}
-
-// ComponentOption 组件选项
-type ComponentOption func(*BaseComponent)
-
-func NewComponent(name string, opts ...ComponentOption) ScoreComponent {
-	c := &BaseComponent{
-		name:       name,
-		autoWeight: true,
-	}
-
-	for _, opt := range opts {
-		opt(c)
-	}
-
-	if err := GetScoringSystem().Register(c); err != nil {
-		panic(err)
-	}
-	return c
-}
-
-func WithCustomWeight(w float64) ComponentOption {
-	return func(c *BaseComponent) {
-		c.customWeight = w
-		c.autoWeight = false
-	}
-}
-
-func WithProcessor(p DataProcessor, data interface{}) ComponentOption {
-	return func(c *BaseComponent) {
-		c.processor = p
-		c.rawData = data
-	}
+// WeightDistribution 获取权重分布
+func (s *ScoreCalculator) WeightDistribution() map[string]float64 {
+	return s.computedWeights
 }
