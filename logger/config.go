@@ -107,9 +107,11 @@ func InitLogger(path string, level LogLevel) {
 		path = os.TempDir()
 	}
 	defaultLevel = level
+	cfg.EnableConsole = false
 	switch level {
 	case DEBUG:
 		cfg.Level = zapcore.DebugLevel
+		cfg.EnableConsole = true
 	case INFO:
 		cfg.Level = zapcore.InfoLevel
 	case ERROR:
