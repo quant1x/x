@@ -3,9 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.23] - 2025-09-14
+### Changed
+- 屏蔽日志组件输出配置信息
+
 ## [0.1.22] - 2025-09-14
 ### Changed
 - 增补TreeMap
+- update changelog
 
 ## [0.1.21] - 2025-09-14
 ### Changed
@@ -328,7 +333,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.22...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.23...HEAD
+[0.1.23]: https://gitee.com/quant1x/x-go.git/compare/v0.1.22...v0.1.23
 [0.1.22]: https://gitee.com/quant1x/x-go.git/compare/v0.1.21...v0.1.22
 [0.1.21]: https://gitee.com/quant1x/x-go.git/compare/v0.1.20...v0.1.21
 [0.1.20]: https://gitee.com/quant1x/x-go.git/compare/v0.1.19...v0.1.20
