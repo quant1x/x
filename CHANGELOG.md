@@ -3,9 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.21] - 2025-09-14
+### Changed
+- 增补进度条和tags工具包
+
 ## [0.1.20] - 2025-09-14
 ### Changed
 - logger日志debug模式, 同时打开控制台
+- update changelog
 
 ## [0.1.19] - 2025-09-14
 ### Changed
@@ -318,7 +323,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.20...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.21...HEAD
+[0.1.21]: https://gitee.com/quant1x/x-go.git/compare/v0.1.20...v0.1.21
 [0.1.20]: https://gitee.com/quant1x/x-go.git/compare/v0.1.19...v0.1.20
 [0.1.19]: https://gitee.com/quant1x/x-go.git/compare/v0.1.18...v0.1.19
 [0.1.18]: https://gitee.com/quant1x/x-go.git/compare/v0.1.17...v0.1.18
