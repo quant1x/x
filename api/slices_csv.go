@@ -3,9 +3,8 @@ package api
 import (
 	"os"
 
+	"github.com/quant1x/pkg/gocsv"
 	"github.com/quant1x/x/util/homedir"
-	//"github.com/quant1x/pkg/gocsv"
-	"github.com/gocarina/gocsv"
 )
 
 const (
@@ -13,6 +12,7 @@ const (
 )
 
 func init() {
+	//"github.com/gocarina/gocsv" 原生存在浮点和整型处理不够安全的问题
 	gocsv.TagName = DefaultTagName
 }
 
