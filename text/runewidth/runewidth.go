@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/quant1x/gox/text/uniseg"
+	"github.com/quant1x/x/text/uniseg"
 )
 
 //go:generate go run script/generate.go
