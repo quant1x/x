@@ -3,9 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.12] - 2025-09-14
+### Changed
+- 新增exception
+
 ## [0.1.11] - 2025-09-14
 ### Changed
 - 新增homedir
+- update changelog
 
 ## [0.1.10] - 2025-09-14
 ### Changed
@@ -272,7 +277,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.11...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.12...HEAD
+[0.1.12]: https://gitee.com/quant1x/x-go.git/compare/v0.1.11...v0.1.12
 [0.1.11]: https://gitee.com/quant1x/x-go.git/compare/v0.1.10...v0.1.11
 [0.1.10]: https://gitee.com/quant1x/x-go.git/compare/v0.1.9...v0.1.10
 [0.1.9]: https://gitee.com/quant1x/x-go.git/compare/v0.1.8...v0.1.9
