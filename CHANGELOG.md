@@ -3,9 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.17] - 2025-09-14
+### Changed
+- 新增pool工具包
+
 ## [0.1.16] - 2025-09-14
 ### Changed
 - 修正包路径
+- update changelog
 
 ## [0.1.15] - 2025-09-14
 ### Changed
@@ -297,7 +302,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.16...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.17...HEAD
+[0.1.17]: https://gitee.com/quant1x/x-go.git/compare/v0.1.16...v0.1.17
 [0.1.16]: https://gitee.com/quant1x/x-go.git/compare/v0.1.15...v0.1.16
 [0.1.15]: https://gitee.com/quant1x/x-go.git/compare/v0.1.14...v0.1.15
 [0.1.14]: https://gitee.com/quant1x/x-go.git/compare/v0.1.13...v0.1.14
