@@ -176,11 +176,11 @@ func (c *Cron) AddJobWithSkipIfStillRunning(spec string, cmd func()) (EntryID, e
 			cmd()
 			if runtime.Debug() {
 				elapsedTime := time.Since(tmStart) / time.Millisecond
-				logger.Warnf("func: %s, 总耗时: %.3fs", funcName, float64(elapsedTime)/1000)
+				logger_error.Warnf("func: %s, 总耗时: %.3fs", funcName, float64(elapsedTime)/1000)
 			}
 		default:
 			if runtime.Debug() {
-				logger.Warnf("func: %s, skip", funcName)
+				logger_error.Warnf("func: %s, skip", funcName)
 			}
 		}
 	}

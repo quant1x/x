@@ -98,7 +98,7 @@ func (o *RollingOnce) updateObserver() {
 		newObserver += window
 	}
 	o.observer.Store(newObserver)
-	logger.Debugf("[%s]窗口观察点更新为: %s", o.name, time.Unix(newObserver/1000, 0).Format(time.RFC3339)) // 修正此处
+	logger_error.Debugf("[%s]窗口观察点更新为: %s", o.name, time.Unix(newObserver/1000, 0).Format(time.RFC3339)) // 修正此处
 }
 
 // Do 执行任务（仅在当前时间窗口内首次调用有效）
@@ -125,7 +125,7 @@ func (o *RollingOnce) Do() {
 	defer o.done.Store(true)
 
 	o.task()
-	logger.Infof("[%s]任务执行完成 @ %s", o.name, time.Now().Format(time.RFC3339))
+	logger_error.Infof("[%s]任务执行完成 @ %s", o.name, time.Now().Format(time.RFC3339))
 }
 
 // 判断当前窗口是否过期
@@ -143,11 +143,11 @@ func (o *RollingOnce) watcher() {
 		select {
 		case <-o.ticker.C:
 			if o.windowExpired() {
-				logger.Debugf("[%s]检测到窗口过期，触发重置", o.name)
+				logger_error.Debugf("[%s]检测到窗口过期，触发重置", o.name)
 				o.reset()
 			}
 		case <-o.closeSignal:
-			logger.Debugf("[%s]接收到关闭信号，退出监听", o.name)
+			logger_error.Debugf("[%s]接收到关闭信号，退出监听", o.name)
 			return
 		}
 	}
@@ -164,7 +164,7 @@ func (o *RollingOnce) reset() {
 
 	o.done.Store(false)
 	o.updateObserver()
-	logger.Infof("[%s]状态已重置，下次执行窗口: %s", o.name, time.Unix(o.observer.Load()/1000, 0).Format(time.RFC3339)) // 修正此处
+	logger_error.Infof("[%s]状态已重置，下次执行窗口: %s", o.name, time.Unix(o.observer.Load()/1000, 0).Format(time.RFC3339)) // 修正此处
 }
 
 // Close 安全停止后台监听
@@ -174,7 +174,7 @@ func (o *RollingOnce) Close() {
 			o.ticker.Stop()
 		}
 		close(o.closeSignal)
-		logger.Info("资源已释放")
+		logger_error.Info("资源已释放")
 	})
 }
 
@@ -186,6 +186,6 @@ func (o *RollingOnce) AdjustOffset(newOffsetMs int64) error {
 
 	o.offset.Store(newOffsetMs)
 	o.updateObserver()
-	logger.Infof("[%s]时间偏移量已调整为: %dms", o.name, newOffsetMs)
+	logger_error.Infof("[%s]时间偏移量已调整为: %dms", o.name, newOffsetMs)
 	return nil
 }

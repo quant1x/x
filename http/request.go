@@ -159,7 +159,7 @@ func Request(url string, method string, content string, header ...map[string]any
 		case "gzip":
 			reader, err = gzip.NewReader(bytes.NewBuffer(body))
 			if err != nil {
-				logger.Error(err)
+				logger_error.Error(err)
 				reader = nil
 			}
 		case "deflate":

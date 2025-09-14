@@ -32,9 +32,9 @@ func catchException(err any, ignore bool, format string, a ...any) {
 		//warning := sprintf(v...)
 		warning := fmt.Sprintf(format, a...)
 		stack := string(debug.Stack())
-		loggerFunc := logger.Fatalf
+		loggerFunc := logger_error.Fatalf
 		if ignore {
-			loggerFunc = logger.Errorf
+			loggerFunc = logger_error.Errorf
 		} else {
 			fmt.Printf("\nerr=%v, stack=%s\n", err, stack)
 		}

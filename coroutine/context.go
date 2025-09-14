@@ -44,11 +44,11 @@ func WaitForShutdown() {
 	interrupt := signal.NotifyForShutdown()
 	select {
 	case <-globalContext.Done():
-		logger.Infof("application shutdown...")
+		logger_error.Infof("application shutdown...")
 		globalCancel()
 		break
 	case sig := <-interrupt:
-		logger.Infof("interrupt: %s", sig.String())
+		logger_error.Infof("interrupt: %s", sig.String())
 		globalCancel()
 		break
 	}
