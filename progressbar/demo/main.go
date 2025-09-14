@@ -99,7 +99,7 @@ func v2ProgressBarTest() {
 }
 
 func main() {
-	logger_error.InitLogger("/opt/logs/test", logger_error.INFO)
+	logger.InitLogger("/opt/logs/test", logger.INFO)
 	for i := 0; i < 100; i++ {
 		v2ProgressBarTest()
 		//fmt.Printf("\n\n\n\n\n====================================================================================================")
