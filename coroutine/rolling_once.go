@@ -114,11 +114,11 @@ func (o *RollingOnce) runTicker() {
 			// 检查滑动窗口期是否过时
 			if o.WindowIsExpired() {
 				if runtime.Debug() {
-					logger_error.Infof("RollingOnce[%s]: reset begin", funcName)
+					logger.Infof("RollingOnce[%s]: reset begin", funcName)
 				}
 				o.Reset()
 				if runtime.Debug() {
-					logger_error.Infof("RollingOnce[%s]: reset end", funcName)
+					logger.Infof("RollingOnce[%s]: reset end", funcName)
 				}
 			}
 		case <-o.finished:
