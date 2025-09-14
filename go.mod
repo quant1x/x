@@ -4,6 +4,7 @@ go 1.25
 
 require (
 	github.com/go-co-op/gocron/v2 v2.16.5
+	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jonboulle/clockwork v0.5.0
 	github.com/kardianos/service v1.2.4
