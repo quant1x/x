@@ -71,11 +71,11 @@ func (o *PeriodicOnce) initTimer() {
 		_, err := o.timer.AddFuncWithSkipIfStillRunning(cronDefaultInterval, func() {
 			if o.isExpired() {
 				if runtime.Debug() {
-					logger_error.Infof("PeriodicOnce[%s]: reset begin", funcName)
+					logger.Infof("PeriodicOnce[%s]: reset begin", funcName)
 				}
 				o.Reset()
 				if runtime.Debug() {
-					logger_error.Infof("PeriodicOnce[%s]: reset end", funcName)
+					logger.Infof("PeriodicOnce[%s]: reset end", funcName)
 				}
 			}
 		})
