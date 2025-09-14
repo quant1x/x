@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"gitee.com/quant1x/gox/api"
+	"github.com/quant1x/x/api"
 	"github.com/quant1x/x/rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
