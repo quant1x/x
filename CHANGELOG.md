@@ -3,9 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.15] - 2025-09-14
+### Changed
+- 新增字符集
+
 ## [0.1.14] - 2025-09-14
 ### Changed
 - 补充部分数据结构
+- update changelog
 
 ## [0.1.13] - 2025-09-14
 ### Changed
@@ -287,7 +292,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.14...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.15...HEAD
+[0.1.15]: https://gitee.com/quant1x/x-go.git/compare/v0.1.14...v0.1.15
 [0.1.14]: https://gitee.com/quant1x/x-go.git/compare/v0.1.13...v0.1.14
 [0.1.13]: https://gitee.com/quant1x/x-go.git/compare/v0.1.12...v0.1.13
 [0.1.12]: https://gitee.com/quant1x/x-go.git/compare/v0.1.11...v0.1.12
