@@ -3,9 +3,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.26] - 2025-09-14
+### Changed
+- 调整logger
+- 调整logger
+- 调整logger
+- 调整logger
+- 调整logger
+
 ## [0.1.25] - 2025-09-14
 ### Changed
 - 新增git仓库文件属性设置及编辑器选项配置
+- update changelog
 
 ## [0.1.24] - 2025-09-14
 ### Changed
@@ -343,7 +352,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.25...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.26...HEAD
+[0.1.26]: https://gitee.com/quant1x/x-go.git/compare/v0.1.25...v0.1.26
 [0.1.25]: https://gitee.com/quant1x/x-go.git/compare/v0.1.24...v0.1.25
 [0.1.24]: https://gitee.com/quant1x/x-go.git/compare/v0.1.23...v0.1.24
 [0.1.23]: https://gitee.com/quant1x/x-go.git/compare/v0.1.22...v0.1.23
