@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -122,7 +121,7 @@ func InitLogger(path string, level LogLevel) {
 		cfg.Level = zapcore.FatalLevel
 	}
 	cfg.Path = getLogRoot(path)
-	fmt.Println(cfg)
+	//fmt.Println(cfg)
 	zapLogger := NewTextLoggerWithCompression(cfg)
 	logger = zapLogger.Sugar()
 
