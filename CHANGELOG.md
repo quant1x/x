@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.27] - 2025-09-15
+### Changed
+- 整理代码, 从v0.1.7恢复
+- 删除废弃的代码
+- 调整部分代码
+- 调整部分代码
+- 调整部分代码
+- 优化上下文+signal信号检测
+
 ## [0.1.26] - 2025-09-14
 ### Changed
 - 调整logger
@@ -10,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - 调整logger
 - 调整logger
 - 调整logger
+- update changelog
 
 ## [0.1.25] - 2025-09-14
 ### Changed
@@ -352,7 +362,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.26...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.27...HEAD
+[0.1.27]: https://gitee.com/quant1x/x-go.git/compare/v0.1.26...v0.1.27
 [0.1.26]: https://gitee.com/quant1x/x-go.git/compare/v0.1.25...v0.1.26
 [0.1.25]: https://gitee.com/quant1x/x-go.git/compare/v0.1.24...v0.1.25
 [0.1.24]: https://gitee.com/quant1x/x-go.git/compare/v0.1.23...v0.1.24
