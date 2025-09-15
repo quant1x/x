@@ -3,15 +3,17 @@ package main
 import (
 	"time"
 
+	"github.com/quant1x/x/core"
 	"github.com/quant1x/x/logger"
 	"go.uber.org/zap"
 )
 
 // 主函数示例
 func main() {
+	defer core.WaitForShutdown(1)
 	//logDir := "./logs"
 	//logger.InitLogger(logDir, logger.INFO)
-	count := 1000
+	count := 1
 	//logger.Fatal("This is fatal")
 	for i := 0; i < count; i++ {
 		// 输出日志

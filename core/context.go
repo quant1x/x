@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -43,23 +44,23 @@ func GetContextWithCancel() (context.Context, context.CancelFunc) {
 // RegisterHook 注册系统退出的hook
 func RegisterHook(name string, cb func()) context.Context {
 	ctx, cancel := GetContextWithCancel()
-	go func() {
+	go func(name_ string, ctx_ context.Context, cancel_ context.CancelFunc, cb_ func()) {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-ctx_.Done():
 				// 收到退出信号
-				//logger.Debug("x/context: stopping %s", name)
+				fmt.Printf("x/context: stopping %s\n", name_)
 				// 执行回调
-				cb()
-				//logger.Debug("x/context: %s stopped", name)
+				cb_()
+				fmt.Printf("x/context: %s stopped\n", name_)
 				// cancel 子context
-				cancel()
-				//logger.Debug("x/context: %s finished", name)
+				cancel_()
+				fmt.Printf("x/context: %s finished\n", name_)
 				globalWaitGroup.Done()
 				return
 			}
 		}
-	}()
+	}(name, ctx, cancel, cb)
 	_ = name
 	return ctx
 }
@@ -86,10 +87,10 @@ func WaitForShutdown(d ...int) {
 	} else {
 		select {
 		case <-globalContext.Done():
-			//logger.Info("application shutdown...")
+			fmt.Printf("application shutdown...\n")
 			break
 		case sig := <-interrupt:
-			//logger.Info("interrupt: %s", sig.String())
+			fmt.Printf("interrupt: %s\n", sig.String())
 			_ = sig
 			break
 		}
