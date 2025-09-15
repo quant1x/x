@@ -73,7 +73,7 @@ func applicationShutdown() {
 
 // WaitForShutdown 阻塞等待关闭信号
 //
-//	如果传入d, 视为等待d秒结束
+//	如果传入d, 视为等待d毫秒结束
 //	如果没有传值, 则默认为等待信号
 func WaitForShutdown(d ...int) {
 	globalOnce.Do(initContext)
@@ -81,9 +81,11 @@ func WaitForShutdown(d ...int) {
 	delay := 0
 	if len(d) > 0 {
 		delay = d[0]
+	} else {
+		delay = 1
 	}
 	if delay > 0 {
-		time.Sleep(time.Second * time.Duration(delay))
+		time.Sleep(time.Millisecond * time.Duration(delay))
 	} else {
 		select {
 		case <-globalContext.Done():

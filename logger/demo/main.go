@@ -10,7 +10,7 @@ import (
 
 // 主函数示例
 func main() {
-	defer core.WaitForShutdown(1)
+	defer core.WaitForShutdown()
 	//logDir := "./logs"
 	//logger.InitLogger(logDir, logger.INFO)
 	count := 1

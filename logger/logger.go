@@ -149,7 +149,8 @@ var (
 		zapcore.PanicLevel:  "fatal",
 		zapcore.FatalLevel:  "fatal",
 	}
-	console = zapcore.AddSync(os.Stdout)
+	console            = zapcore.AddSync(os.Stdout)
+	loggerShutdownOnce sync.Once
 )
 
 func getLogger(cfg Config, level zapcore.Level) (zapcore.Core, error) {
@@ -313,22 +314,6 @@ func NewTextLoggerWithCompression(cfg Config) *zap.Logger {
 //	}
 //}
 
-// =========================
-// 🚨 修复点2：等待进程结束信号（关键修复：使用 Desugar().Sync()）
-// =========================
-
-func waitForStop(ch chan os.Signal) {
-	s := <-ch // 收到退出信号
-
-	Shutdown()
-
-	// 3. 输出退出信息（统一用 zap，避免混用 fmt）
-	Infof("收到退出信号，正在优雅关闭: %+v", s)
-
-	// 4. 退出进程
-	os.Exit(0)
-}
-
 func init() {
 	tempPath := os.TempDir()
 	InitLogger(tempPath, defaultLevel)
@@ -338,9 +323,7 @@ func init() {
 	core.RegisterHook("logger", Shutdown)
 }
 
-// Shutdown 优雅关闭日志系统，刷盘并释放资源
-// 可被 main、测试、HTTP 接口等主动调用
-func Shutdown() {
+func loggerSyncAndShutdown() {
 	// 1. 停止所有自定义缓冲写入器（如 BufferedWriteSyncer）
 	for i, bw := range bufferedWriters {
 		if err := bw.Stop(); err != nil {
@@ -357,4 +340,10 @@ func Shutdown() {
 			Infof("日志已成功刷新并关闭")
 		}
 	}
+}
+
+// Shutdown 优雅关闭日志系统，刷盘并释放资源
+// 可被 main、测试、HTTP 接口等主动调用
+func Shutdown() {
+	loggerShutdownOnce.Do(loggerSyncAndShutdown)
 }
