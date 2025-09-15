@@ -9,86 +9,100 @@ import (
 )
 
 var (
-	globalOnce      sync.Once
-	globalContext   context.Context    = nil
-	globalCancel    context.CancelFunc = nil
-	globalWaitGroup sync.WaitGroup
+	initOnce          sync.Once
+	rootContext       context.Context
+	rootCancel        context.CancelFunc
+	shutdownWaitGroup sync.WaitGroup
 )
 
-func initContext() {
-	globalContext, globalCancel = context.WithCancel(context.Background())
+// initialize 初始化根上下文和取消函数
+func initialize() {
+	rootContext, rootCancel = context.WithCancel(context.Background())
 }
 
 // Context 获取全局顶层context
 func Context() context.Context {
-	globalOnce.Do(initContext)
-	return globalContext
+	initOnce.Do(initialize)
+	return rootContext
 }
 
 // Shutdown 关闭应用程序, 通知所有协程退出
 func Shutdown() {
-	globalOnce.Do(initContext)
-	if globalCancel != nil {
-		globalCancel()
+	initOnce.Do(initialize)
+	if rootCancel != nil {
+		rootCancel()
 	}
 }
 
+// GetContextWithCancel 创建一个新的可取消上下文
 func GetContextWithCancel() (context.Context, context.CancelFunc) {
-	globalOnce.Do(initContext)
-	ctx, cancel := context.WithCancel(globalContext)
-	globalWaitGroup.Add(1)
-	return ctx, cancel
+	initOnce.Do(initialize)
+
+	ctx, cancel := context.WithCancel(rootContext)
+	shutdownWaitGroup.Add(1)
+
+	// 包装cancel函数以确保WaitGroup计数正确
+	var once sync.Once
+	wrappedCancel := func() {
+		once.Do(func() {
+			cancel()
+			shutdownWaitGroup.Done()
+		})
+	}
+
+	return ctx, wrappedCancel
 }
 
 // RegisterHook 注册系统退出的hook
 func RegisterHook(name string, callback func()) context.Context {
 	ctx, cancel := GetContextWithCancel()
-	go func(name_ string, ctx_ context.Context, cancel_ context.CancelFunc, cb_ func()) {
-		defer globalWaitGroup.Done()
-		// 收到退出信号
-		<-ctx_.Done()
-		//fmt.Printf("x/context: stopping %s\n", name_)
-		// 执行回调
-		cb_()
-		//fmt.Printf("x/context: %s stopped\n", name_)
-		// cancel 子context
-		cancel_()
-		//fmt.Printf("x/context: %s finished\n", name_)
-		//globalWaitGroup.Done()
-	}(name, ctx, cancel, callback)
+
+	go func() {
+		defer cancel() // 确保无论如何都会调用cancel
+
+		<-ctx.Done() // 等待关闭信号
+		callback()   // 执行回调
+	}()
 	_ = name
+
 	return ctx
 }
 
-// 执行应用退出前的清理工作
+// applicationShutdown 执行应用退出前的清理工作
 func applicationShutdown() {
-	globalCancel()
-	globalWaitGroup.Wait()
+	if rootCancel != nil {
+		rootCancel()
+	}
+	shutdownWaitGroup.Wait()
 }
 
 // WaitForShutdown 阻塞等待关闭信号
 //
-//	如果传入d, 视为等待d毫秒结束
-//	如果没有传值, 则默认为等待信号
+// 参数d为等待的毫秒数：
+//   - 如果传入d > 0，等待指定毫秒后关闭
+//   - 如果传入d == 0或未传参，等待中断信号
 func WaitForShutdown(d ...int) {
-	globalOnce.Do(initContext)
+	initOnce.Do(initialize)
+
 	interrupt := signal.NotifyForShutdown()
 	delay := 0
 	if len(d) > 0 {
 		delay = d[0]
 	}
+
 	if delay != 0 {
-		time.Sleep(time.Millisecond * time.Duration(delay))
+		select {
+		case <-time.After(time.Millisecond * time.Duration(delay)):
+		case <-rootContext.Done():
+		case <-interrupt:
+		}
 	} else {
 		select {
-		case <-globalContext.Done():
-			//fmt.Printf("application shutdown...\n")
-			break
+		case <-rootContext.Done():
 		case sig := <-interrupt:
-			//fmt.Printf("interrupt: %s\n", sig.String())
-			_ = sig
-			break
+			_ = sig // 忽略信号值
 		}
 	}
+
 	applicationShutdown()
 }
