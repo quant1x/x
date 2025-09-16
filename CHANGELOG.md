@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.28] - 2025-09-16
+### Changed
+- 调整局部变量名
+- 更新依赖库版本
+
 ## [0.1.27] - 2025-09-15
 ### Changed
 - 整理代码, 从v0.1.7恢复
@@ -11,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - 调整部分代码
 - 调整部分代码
 - 优化上下文+signal信号检测
+- update changelog
 
 ## [0.1.26] - 2025-09-14
 ### Changed
@@ -362,7 +368,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.27...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.28...HEAD
+[0.1.28]: https://gitee.com/quant1x/x-go.git/compare/v0.1.27...v0.1.28
 [0.1.27]: https://gitee.com/quant1x/x-go.git/compare/v0.1.26...v0.1.27
 [0.1.26]: https://gitee.com/quant1x/x-go.git/compare/v0.1.25...v0.1.26
 [0.1.25]: https://gitee.com/quant1x/x-go.git/compare/v0.1.24...v0.1.25
