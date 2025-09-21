@@ -290,8 +290,8 @@ func NewTextLoggerWithCompression(cfg Config) *zap.Logger {
 		cores = append(cores, fatalLogger)
 	}
 
-	core := zapcore.NewTee(cores...)
-	return zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+	core_ := zapcore.NewTee(cores...)
+	return zap.New(core_, zap.AddCaller(), zap.AddCallerSkip(1))
 }
 
 //// =========================
