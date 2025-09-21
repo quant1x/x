@@ -3,10 +3,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.29] - 2025-09-22
+### Changed
+- 修正局部变量名core与包名冲突
+
 ## [0.1.28] - 2025-09-16
 ### Changed
 - 调整局部变量名
 - 更新依赖库版本
+- update changelog
 
 ## [0.1.27] - 2025-09-15
 ### Changed
@@ -368,7 +373,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.28...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.1.29...HEAD
+[0.1.29]: https://gitee.com/quant1x/x-go.git/compare/v0.1.28...v0.1.29
 [0.1.28]: https://gitee.com/quant1x/x-go.git/compare/v0.1.27...v0.1.28
 [0.1.27]: https://gitee.com/quant1x/x-go.git/compare/v0.1.26...v0.1.27
 [0.1.26]: https://gitee.com/quant1x/x-go.git/compare/v0.1.25...v0.1.26
