@@ -1,8 +1,35 @@
+// Package ringbuffer provides a high-performance, lock-free MPMC (Multi-Producer Multi-Consumer) ring buffer implementation.
+// It uses atomic operations and spin-waiting for efficient concurrent access, suitable for high-throughput scenarios.
+// The buffer size must be a power of two for optimal performance.
+//
+// Example usage:
+//
+//	rb, err := ringbuffer.New[int](1024)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer rb.Close()
+//
+//	go func() {
+//		for i := 0; i < 100; i++ {
+//			rb.Write(i)
+//		}
+//		rb.Close()
+//	}()
+//
+//	for {
+//		v, err := rb.Read()
+//		if err != nil {
+//			break
+//		}
+//		fmt.Println(v)
+//	}
 package ringbuffer
 
 import (
 	"errors"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"unsafe"
 )
@@ -27,6 +54,7 @@ type RingBuffer[T any] struct {
 	producerPos uint32 // 全局生产者位置
 	consumerPos uint32 // 全局消费者位置
 	closed      uint32 // 关闭标记
+	pool        sync.Pool // 对象池，用于复用 T 的包装对象
 }
 
 // New creates a new MPMC ring buffer
@@ -39,6 +67,9 @@ func New[T any](size uint32) (*RingBuffer[T], error) {
 		slots: make([]Slot[T], size),
 		size:  size,
 		mask:  size - 1,
+		pool: sync.Pool{
+			New: func() any { return new(T) },
+		},
 	}
 
 	for i := range rb.slots {
@@ -97,8 +128,8 @@ func (rb *RingBuffer[T]) Write(value T) error {
 			continue
 		}
 
-		// 写入数据：显式堆分配，不再依赖逃逸分析
-		boxed := new(T)
+		// 写入数据：使用对象池复用，避免频繁分配
+		boxed := rb.pool.Get().(*T)
 		*boxed = value
 		atomic.StorePointer(&slot.data, unsafe.Pointer(boxed))
 		atomic.StoreUint32(&slot.flag, 2)
@@ -157,7 +188,9 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 		}
 
 		if atomic.CompareAndSwapUint32(&rb.consumerPos, currentCons, currentCons+1) {
-			return *(*T)(valPtr), nil
+			val := *(*T)(valPtr)
+			rb.pool.Put((*T)(valPtr)) // 放回对象池复用
+			return val, nil
 		}
 
 		// 如果更新失败，回滚槽位状态
@@ -166,7 +199,36 @@ func (rb *RingBuffer[T]) Read() (T, error) {
 	}
 }
 
+// Len returns the current number of elements in the buffer
+func (rb *RingBuffer[T]) Len() int {
+	prod := atomic.LoadUint32(&rb.producerPos)
+	cons := atomic.LoadUint32(&rb.consumerPos)
+	return int(prod - cons)
+}
+
+// Cap returns the capacity of the buffer
+func (rb *RingBuffer[T]) Cap() int {
+	return int(rb.size)
+}
+
+// IsEmpty returns true if the buffer is empty
+func (rb *RingBuffer[T]) IsEmpty() bool {
+	return rb.Len() == 0
+}
+
+// IsFull returns true if the buffer is full
+func (rb *RingBuffer[T]) IsFull() bool {
+	return rb.Len() == int(rb.size)
+}
+
 // Close closes the ring buffer
 func (rb *RingBuffer[T]) Close() {
 	atomic.StoreUint32(&rb.closed, 1)
+}
+
+// WaitForClose blocks until all data has been consumed after closing
+func (rb *RingBuffer[T]) WaitForClose() {
+	for !rb.IsEmpty() {
+		runtime.Gosched()
+	}
 }
