@@ -1,16 +1,49 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/quant1x/x/std/signal"
+	"github.com/quant1x/x/core"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+// customTimeEncoder 自定义时间编码器，不带时区
+func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.Format("2006-01-02T15:04:05.000"))
+}
+
+// coreLoggerAdapter 适配器，实现core.Logger接口
+type coreLoggerAdapter struct{}
+
+func (c *coreLoggerAdapter) Debug(msg string, keysAndValues ...interface{}) {
+	if logger != nil {
+		logger.Debugw(msg, keysAndValues...)
+	}
+}
+
+func (c *coreLoggerAdapter) Info(msg string, keysAndValues ...interface{}) {
+	if logger != nil {
+		logger.Infow(msg, keysAndValues...)
+	}
+}
+
+func (c *coreLoggerAdapter) Warn(msg string, keysAndValues ...interface{}) {
+	if logger != nil {
+		logger.Warnw(msg, keysAndValues...)
+	}
+}
+
+func (c *coreLoggerAdapter) Error(msg string, keysAndValues ...interface{}) {
+	if logger != nil {
+		logger.Errorw(msg, keysAndValues...)
+	}
+}
 
 // Config 日志配置
 type Config struct {
@@ -36,7 +69,7 @@ var (
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    zapcore.CapitalLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
+		EncodeTime:     customTimeEncoder,
 		EncodeDuration: zapcore.StringDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
@@ -75,9 +108,10 @@ func init() {
 	//cfg.Path = getLogRoot(tempPath)
 	//zapLogger := NewTextLoggerWithCompression(cfg)
 	//logger = zapLogger.Sugar()
+	fmt.Println(tempPath)
 	InitLogger(tempPath, defaultLevel)
-	chSignal := signal.NotifyForShutdown()
-	go waitForStop(chSignal)
+	core.SetLogger(&coreLoggerAdapter{})
+	_ = core.RegisterHook("logger", waitForStop)
 }
 
 func addBufferWriteSyncer(bw *zapcore.BufferedWriteSyncer) {

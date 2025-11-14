@@ -11,7 +11,7 @@ import (
 func main() {
 	//logDir := "./logs"
 	//logger.InitLogger(logDir, logger.INFO)
-	count := 1000
+	count := 10
 	//logger.Fatal("This is fatal")
 	for i := 0; i < count; i++ {
 		// 输出日志
