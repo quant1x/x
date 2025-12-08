@@ -19,3 +19,7 @@ bin/
 *.xlsx
 ~*.xlsx
 *.dat
+
+# IDE/editor specific files
+.vscode/
+.idea/
