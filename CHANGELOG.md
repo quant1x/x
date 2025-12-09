@@ -3,9 +3,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-12-09
+### Changed
+- 梳理废弃工具包
+- 修复cron测试代码
+- 调整日志模块
+
 ## [0.2.0] - 2025-11-14
 ### Changed
 - 优化上下文，强化引用退出机制
+- update changelog
 
 ## [0.1.30] - 2025-09-30
 ### Changed
@@ -363,7 +370,8 @@ All notable changes to this project will be documented in this file.
 - update changelog
 
 
-[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.2.0...HEAD
+[Unreleased]: https://gitee.com/quant1x/x-go.git/compare/v0.2.1...HEAD
+[0.2.1]: https://gitee.com/quant1x/x-go.git/compare/v0.2.0...v0.2.1
 [0.2.0]: https://gitee.com/quant1x/x-go.git/compare/v0.1.30...v0.2.0
 [0.1.30]: https://gitee.com/quant1x/x-go.git/compare/v0.1.29...v0.1.30
 [0.1.29]: https://gitee.com/quant1x/x-go.git/compare/v0.1.28...v0.1.29
