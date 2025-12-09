@@ -8,9 +8,9 @@ type Logger interface {
 	Error(msg string, keysAndValues ...interface{})
 }
 
-var globalLogger Logger = nil
+var logger Logger = nil
 
 // SetLogger 设置全局logger
-func SetLogger(logger Logger) {
-	globalLogger = logger
+func SetLogger(logger_ Logger) {
+	logger = logger_
 }

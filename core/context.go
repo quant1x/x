@@ -52,18 +52,18 @@ func RegisterHook(name string, cb func()) context.Context {
 	ctx, cancel := GetContextWithCancel()
 	go func() {
 		<-ctx.Done()
-		if globalLogger != nil {
-			globalLogger.Debug("x/context: stopping %s", name)
+		if logger != nil {
+			logger.Debug("x/context: stopping %s", name)
 		}
 		// 执行回调
 		cb()
-		if globalLogger != nil {
-			globalLogger.Debug("x/context: %s stopped", name)
+		if logger != nil {
+			logger.Debug("x/context: %s stopped", name)
 		}
 		// cancel 子context
 		cancel()
-		if globalLogger != nil {
-			globalLogger.Debug("x/context: %s finished", name)
+		if logger != nil {
+			logger.Debug("x/context: %s finished", name)
 		}
 		globalWaitGroup.Done()
 	}()

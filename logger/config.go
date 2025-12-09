@@ -110,8 +110,6 @@ func init() {
 	//logger = zapLogger.Sugar()
 	fmt.Println(tempPath)
 	InitLogger(tempPath, defaultLevel)
-	core.SetLogger(&coreLoggerAdapter{})
-	_ = core.RegisterHook("logger", waitForStop)
 }
 
 func addBufferWriteSyncer(bw *zapcore.BufferedWriteSyncer) {
@@ -121,11 +119,6 @@ func addBufferWriteSyncer(bw *zapcore.BufferedWriteSyncer) {
 	mu.Lock()
 	defer mu.Unlock()
 	bws = append(bws, bw)
-}
-
-// SetLevel 在临时路径记录日志
-func SetLevel(level LogLevel) {
-	InitLogger("", level)
 }
 
 // IsDebug 是否debug日志模式
@@ -155,10 +148,10 @@ func InitLogger(path string, level LogLevel) {
 		cfg.Level = zapcore.FatalLevel
 	}
 	cfg.Path = getLogRoot(path)
-	//fmt.Println(cfg)
 	zapLogger := NewTextLoggerWithCompression(cfg)
 	logger = zapLogger.Sugar()
-
+	core.SetLogger(&coreLoggerAdapter{})
+	_ = core.RegisterHook("logger", waitForStop)
 }
 
 func getLogRoot(path string) string {
